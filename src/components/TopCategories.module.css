@@ -1,0 +1,88 @@
+﻿.section {
+  width: 100%;
+  padding: 28px 32px 20px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.heading {
+  color: #0d1e50;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.rule {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, #d8bd7d, #e5e7eb 65%, transparent);
+}
+.item {
+  width: calc((100% - 64px) / 5);
+  padding: 4px 0 8px;
+}
+.card {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 14px 16px;
+  border: 1px solid #e5e8ef;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 3px 7px rgb(13 30 80 / 4%);
+  text-decoration: none;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.imageBox {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f6f7f9;
+}
+.image {
+  object-fit: contain;
+  transition: transform 250ms ease;
+}
+.label {
+  margin-top: 14px;
+  color: #17264a;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-transform: capitalize;
+  transition: color 200ms ease;
+}
+.card:hover {
+  border-color: #d8bd7d;
+  box-shadow: 0 4px 10px rgb(13 30 80 / 8%);
+}
+.card:hover .image { transform: scale(1.035); }
+.card:hover .label { color: #96701a; }
+.card:focus-visible {
+  outline: 2px solid #c79524;
+  outline-offset: -3px;
+}
+@media (max-width: 1023px) {
+  .section { padding: 24px; }
+  .item { width: calc((100% - 32px) / 3); }
+}
+@media (max-width: 639px) {
+  .section { padding: 20px 16px 12px; }
+  .header { gap: 12px; margin-bottom: 14px; }
+  .heading { font-size: 15px; }
+  .item { width: calc((100% - 16px) / 2); }
+  .card { padding: 10px 10px 12px; border-radius: 14px; }
+  .imageBox { border-radius: 9px; }
+  .label { margin-top: 10px; font-size: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .image, .label { transition: none; }
+  .card:hover .image { transform: none; }
+}

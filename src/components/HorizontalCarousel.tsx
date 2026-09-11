@@ -38,8 +38,10 @@ export default function HorizontalCarousel({
   }, []);
 
   const goNext = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
     const next = indexRef.current + 1;
-    if (next >= count) {
+    if (track.scrollLeft >= track.scrollWidth - track.clientWidth - 1 || next >= count) {
       trackRef.current?.scrollTo({ left: 0, behavior: "smooth" });
       indexRef.current = 0;
     } else {
