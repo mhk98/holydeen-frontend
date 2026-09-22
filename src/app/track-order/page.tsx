@@ -214,7 +214,7 @@ export default function TrackOrderPage() {
     }
     const normalized = value.replace(/^#/, "").toUpperCase();
     const isPhone = /^01\d{9}$/.test(normalized);
-    const isInvoice = /^TJ-[A-Z0-9-]+$/.test(normalized);
+    const isInvoice = /^HD-[A-Z0-9-]+$/.test(normalized);
     if (!isPhone && !isInvoice) {
       setError("সঠিক ফোন নম্বর অথবা ইনভয়েস আইডি দিন");
       return;

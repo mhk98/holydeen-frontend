@@ -664,6 +664,106 @@ export default function ProductDetailClient({
         )}
       </div>
     </div>
+      {product.description && (
+        <section
+          style={{
+            marginTop: 24,
+            background: "#fff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 8,
+            padding: "24px 26px",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              color: "#111827",
+              marginBottom: 16,
+              paddingBottom: 12,
+              borderBottom: `2px solid ${SECONDARY}`,
+            }}
+          >
+            Product Description
+          </h2>
+          <div
+            className="product-description-content"
+            dangerouslySetInnerHTML={{ __html: product.description }}
+          />
+          <style jsx>{`
+            .product-description-content {
+              color: #374151;
+              font-size: 15px;
+              line-height: 1.85;
+              word-break: break-word;
+            }
+            .product-description-content :global(p) {
+              margin: 0 0 14px;
+            }
+            .product-description-content :global(p:last-child) {
+              margin-bottom: 0;
+            }
+            .product-description-content :global(h1),
+            .product-description-content :global(h2),
+            .product-description-content :global(h3),
+            .product-description-content :global(h4) {
+              color: #0f172a;
+              font-weight: 800;
+              line-height: 1.4;
+              margin: 22px 0 10px;
+            }
+            .product-description-content :global(h1) {
+              font-size: 20px;
+            }
+            .product-description-content :global(h2) {
+              font-size: 18px;
+            }
+            .product-description-content :global(h3) {
+              font-size: 16px;
+            }
+            .product-description-content :global(strong),
+            .product-description-content :global(b) {
+              color: #111827;
+              font-weight: 700;
+            }
+            .product-description-content :global(ul),
+            .product-description-content :global(ol) {
+              margin: 0 0 16px;
+              padding-left: 22px;
+              display: flex;
+              flex-direction: column;
+              gap: 6px;
+            }
+            .product-description-content :global(li) {
+              padding-left: 2px;
+            }
+            .product-description-content :global(ul li) {
+              list-style: disc;
+            }
+            .product-description-content :global(hr) {
+              border: none;
+              border-top: 1px solid #e5e7eb;
+              margin: 20px 0;
+            }
+            .product-description-content :global(a) {
+              color: ${SECONDARY};
+              text-decoration: underline;
+            }
+            .product-description-content :global(img) {
+              max-width: 100%;
+              border-radius: 6px;
+              margin: 10px 0;
+            }
+            .product-description-content :global(blockquote) {
+              margin: 14px 0;
+              padding: 10px 16px;
+              border-left: 3px solid ${SECONDARY};
+              background: #faf7f0;
+              color: #4b5563;
+            }
+          `}</style>
+        </section>
+      )}
       {reviews.length > 0 && (
         <ProductReviews reviews={reviews} averageRating={averageRating} />
       )}

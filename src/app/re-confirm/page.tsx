@@ -174,7 +174,7 @@ function ReConfirmContent() {
                   fontWeight: 600,
                 }}
               >
-                টক ঝালের সাথে থাকার জন্য জাযাকাল্লাহ খাইরান
+                Holy Deen এর সাথে থাকার জন্য জাযাকাল্লাহ খাইরান
               </p>
               <div
                 style={{
@@ -269,7 +269,7 @@ function ReConfirmContent() {
                   fontWeight: 600,
                 }}
               >
-                টক ঝালের সাথে থাকার জন্য জাযাকাল্লাহ খাইরান
+                Holy Deen এর সাথে থাকার জন্য জাযাকাল্লাহ খাইরান
               </p>
 
               <div

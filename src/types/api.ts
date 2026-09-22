@@ -31,6 +31,8 @@ export interface ApiProduct {
   quantity: number;
   file: string | null;
   gallery: string[];
+  description?: string | null;
+  shortDescription?: string | null;
   features: string[];
   variants: ApiVariant[] | null;
   sku: string | null;

@@ -8,6 +8,8 @@ export interface Product {
   discount: number;
   image: string;
   gallery?: string[];
+  description?: string | null;
+  shortDescription?: string | null;
   features?: string[];
   sku?: string | null;
   freeShipping?: boolean;

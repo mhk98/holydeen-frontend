@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import { IMAGES } from "@/lib/api";
-import { fetchLandingPage, LandingPageData, LandingProductOption } from "@/services/landingPageService";
+import {
+  fetchLandingPage,
+  LandingPageData,
+  LandingProductOption,
+} from "@/services/landingPageService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 import LandingOrderForm, { LandingOrderOption } from "./LandingOrderForm";
 
@@ -21,11 +25,14 @@ const stripHtml = (value?: string | null) =>
 
 const parseObject = (value: unknown): Record<string, unknown> => {
   if (!value) return {};
-  if (typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value === "object" && !Array.isArray(value))
+    return value as Record<string, unknown>;
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
-      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+        ? parsed
+        : {};
     } catch {
       return {};
     }
@@ -44,7 +51,8 @@ function toImageUrl(file?: string | null) {
   const value = String(file || "").trim();
   if (!value) return "";
   if (/^(https?:|data:|blob:)/i.test(value)) return value;
-  if (value.startsWith("/images/")) return `${IMAGES}${value.slice("/images".length)}`;
+  if (value.startsWith("/images/"))
+    return `${IMAGES}${value.slice("/images".length)}`;
   if (value.startsWith("/")) return value;
   return `${IMAGES}/${value.replace(/^images\//, "")}`;
 }
@@ -57,7 +65,10 @@ const splitLines = (value: string) => {
   return lines;
 };
 
-function buildProductOptions(page: LandingPageData, image: string): LandingOrderOption[] {
+function buildProductOptions(
+  page: LandingPageData,
+  image: string,
+): LandingOrderOption[] {
   const regularData = parseObject(page.regularData);
   const configured = Array.isArray(regularData.productOptions)
     ? (regularData.productOptions as LandingProductOption[])
@@ -66,9 +77,14 @@ function buildProductOptions(page: LandingPageData, image: string): LandingOrder
     .map((item, index) => ({
       id: String(item.productId || item.id || index),
       productId: item.productId || item.id || page.productId || page.Id,
-      name: String(item.name || page.product || page.title || "Landing Product"),
+      name: String(
+        item.name || page.product || page.title || "Landing Product",
+      ),
       price: toNumber(item.price, toNumber(page.price, 1899)),
-      originalPrice: toNumber(item.originalPrice, toNumber(page.originalPrice, 2500)),
+      originalPrice: toNumber(
+        item.originalPrice,
+        toNumber(page.originalPrice, 2500),
+      ),
       image: toImageUrl(String(item.image || page.bannerImageUrl || image)),
     }))
     .filter((item) => item.name && item.price > 0);
@@ -93,7 +109,9 @@ export async function generateMetadata({ params }: PageProps) {
   if (!page) return { title: "Landing Page - Holy Deen" };
   return {
     title: `${page.title} - Holy Deen`,
-    description: stripHtml(page.shortDescription || page.description || page.subTitle || ""),
+    description: stripHtml(
+      page.shortDescription || page.description || page.subTitle || "",
+    ),
   };
 }
 
@@ -101,7 +119,7 @@ export default async function LandingPage({ params }: PageProps) {
   const { id } = await params;
   const [page, settings] = await Promise.all([
     fetchLandingPage(id),
-    fetchSiteSettings().catch(() => ({} as Partial<SiteSetting>)),
+    fetchSiteSettings().catch(() => ({}) as Partial<SiteSetting>),
   ]);
   if (!page) notFound();
 
@@ -110,13 +128,19 @@ export default async function LandingPage({ params }: PageProps) {
   const price = toNumber(page.price, 0);
   const heroImage = toImageUrl(page.bannerImageUrl || "");
   const productOptions = buildProductOptions(page, heroImage);
-  const carouselItems = buildCarouselItems(regularData.carouselItems, productOptions);
+  const carouselItems = buildCarouselItems(
+    regularData.carouselItems,
+    productOptions,
+  );
   const phone = page.phone || settings.phone || "";
   const problemItems = splitLines(page.shortDescription || "");
   const whyItems = splitLines(page.whyChooseUs || "");
   const descriptionItems = splitLines(page.description || "");
   const ctaText = String(regularData.ctaText || "অর্ডার করতে ক্লিক করুন");
-  const orderTitle = String(regularData.orderTitle || "অর্ডার করতে আপনার সঠিক তথ্য দিয়ে নিচের ফর্মটি সম্পূর্ণ পূরণ করুন।");
+  const orderTitle = String(
+    regularData.orderTitle ||
+      "অর্ডার করতে আপনার সঠিক তথ্য দিয়ে নিচের ফর্মটি সম্পূর্ণ পূরণ করুন।",
+  );
   const priceLine = String(regularData.priceLine || "");
   const pricePrefix = String(regularData.pricePrefix || "মাত্র");
   const priceSuffix = String(regularData.priceSuffix || "টাকায়");
@@ -126,7 +150,9 @@ export default async function LandingPage({ params }: PageProps) {
   const deliveryInside = toNumber(regularData.deliveryInside, 70);
   const deliveryOutside = toNumber(regularData.deliveryOutside, 130);
   const headingItems = buildHeadingItems(regularData.headings);
-  const featureImages = buildFeatureImages(regularData.images || regularData.featureImages);
+  const featureImages = buildFeatureImages(
+    regularData.images || regularData.featureImages,
+  );
   const heroBg = String(colors.heroBg || "#e8f7e4");
   const accentColor = String(colors.accent || "#8d1f5f");
 
@@ -134,9 +160,15 @@ export default async function LandingPage({ params }: PageProps) {
     <main className="min-h-screen bg-white text-slate-950">
       <TopStrip phone={phone} />
 
-      <section className="px-4 pb-14 pt-6 text-center" style={{ backgroundColor: heroBg }}>
+      <section
+        className="px-4 pb-14 pt-6 text-center"
+        style={{ backgroundColor: heroBg }}
+      >
         <div className="mx-auto max-w-6xl">
-          <h1 className="text-4xl font-black leading-tight md:text-6xl" style={{ color: accentColor }}>
+          <h1
+            className="text-4xl font-black leading-tight md:text-6xl"
+            style={{ color: accentColor }}
+          >
             {page.title}
           </h1>
           {page.subTitle ? (
@@ -164,12 +196,20 @@ export default async function LandingPage({ params }: PageProps) {
         <section className="bg-white px-4 py-14">
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-4">
             {headingItems.map((item, index) => (
-              <div key={`${item.title}-${index}`} className="rounded-md border border-slate-100 bg-white p-6 text-center shadow-sm">
-                <h3 className="text-2xl font-black leading-tight" style={{ color: accentColor }}>
+              <div
+                key={`${item.title}-${index}`}
+                className="rounded-md border border-slate-100 bg-white p-6 text-center shadow-sm"
+              >
+                <h3
+                  className="text-2xl font-black leading-tight"
+                  style={{ color: accentColor }}
+                >
                   {item.title}
                 </h3>
                 {item.description ? (
-                  <p className="mt-4 text-base font-bold leading-7 text-slate-950">{item.description}</p>
+                  <p className="mt-4 text-base font-bold leading-7 text-slate-950">
+                    {item.description}
+                  </p>
                 ) : null}
               </div>
             ))}
@@ -177,19 +217,22 @@ export default async function LandingPage({ params }: PageProps) {
         </section>
       ) : null}
 
-      {(page.descriptionTitle || page.shortDescription) ? (
+      {page.descriptionTitle || page.shortDescription ? (
         <InfoSection
-          title={page.descriptionTitle || "কেন টক ঝালের আচার কষা আপনার জন্য?"}
+          title={page.descriptionTitle || ""}
           lines={textLines(page.shortDescription || "")}
           accentColor={accentColor}
         />
       ) : null}
 
-      {(page.whyChooseTitle || whyItems.length > 0) ? (
+      {page.whyChooseTitle || whyItems.length > 0 ? (
         <section className="px-4 py-16" style={{ backgroundColor: heroBg }}>
           <div className="mx-auto max-w-4xl text-center">
             {page.whyChooseTitle ? (
-              <h2 className="text-4xl font-black leading-tight md:text-5xl" style={{ color: accentColor }}>
+              <h2
+                className="text-4xl font-black leading-tight md:text-5xl"
+                style={{ color: accentColor }}
+              >
                 {page.whyChooseTitle}
               </h2>
             ) : null}
@@ -207,15 +250,26 @@ export default async function LandingPage({ params }: PageProps) {
       ) : null}
 
       {descriptionItems.length > 0 ? (
-        <InfoSection title={sizeTitle} lines={descriptionItems} accentColor={accentColor} />
+        <InfoSection
+          title={sizeTitle}
+          lines={descriptionItems}
+          accentColor={accentColor}
+        />
       ) : null}
 
       {featureImages.length ? (
         <section className="bg-white px-4 py-12">
           <div className="mx-auto grid max-w-5xl gap-4 md:grid-cols-4">
             {featureImages.map((item, index) => (
-              <div key={`${item.image}-${index}`} className="overflow-hidden rounded-md border border-slate-200 bg-white">
-                <img src={item.image} alt={item.alt || page.title} className="aspect-square w-full object-cover" />
+              <div
+                key={`${item.image}-${index}`}
+                className="overflow-hidden rounded-md border border-slate-200 bg-white"
+              >
+                <img
+                  src={item.image}
+                  alt={item.alt || page.title}
+                  className="aspect-square w-full object-cover"
+                />
               </div>
             ))}
           </div>
@@ -270,7 +324,10 @@ function InfoSection({
     <section className="bg-white px-4 py-16">
       <div className="mx-auto max-w-4xl text-center">
         {title ? (
-          <h2 className="text-4xl font-black leading-tight md:text-5xl" style={{ color: accentColor }}>
+          <h2
+            className="text-4xl font-black leading-tight md:text-5xl"
+            style={{ color: accentColor }}
+          >
             {title}
           </h2>
         ) : null}
@@ -339,17 +396,14 @@ function DynamicList({ items }: { items: string[] }) {
   );
 }
 
-function ProductCardCarousel({
-  options,
-}: {
-  options: CarouselItem[];
-}) {
+function ProductCardCarousel({ options }: { options: CarouselItem[] }) {
   const carouselItems =
     options.length >= 4
       ? options
-      : Array.from({ length: 4 }, (_, index) => options[index % options.length]).filter(
-          (item): item is CarouselItem => Boolean(item),
-        );
+      : Array.from(
+          { length: 4 },
+          (_, index) => options[index % options.length],
+        ).filter((item): item is CarouselItem => Boolean(item));
   const repeatedItems = [...carouselItems, ...carouselItems];
 
   return (
@@ -394,7 +448,10 @@ type CarouselItem = {
   image: string;
 };
 
-function buildCarouselItems(value: unknown, fallback: LandingOrderOption[]): CarouselItem[] {
+function buildCarouselItems(
+  value: unknown,
+  fallback: LandingOrderOption[],
+): CarouselItem[] {
   const configured = Array.isArray(value) ? value : [];
   const items = configured
     .map((item, index) => {
