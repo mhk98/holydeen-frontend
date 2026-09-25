@@ -24,7 +24,7 @@ const hasOutsideDhakaText = (note: string) =>
 export async function fetchDeliveryCharges(): Promise<ShippingCharge[]> {
   try {
     const res = await fetch(`${BASE}/charge-settings/public?chargeType=delivery`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];

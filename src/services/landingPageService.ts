@@ -38,7 +38,7 @@ export interface LandingPageData {
 export async function fetchLandingPage(id: string | number): Promise<LandingPageData | null> {
   try {
     const res = await fetch(`${BASE}/landing-pages/public/${encodeURIComponent(String(id))}`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
       signal: AbortSignal.timeout(15_000),
     } as RequestInit);
     if (!res.ok) return null;
@@ -49,3 +49,39 @@ export async function fetchLandingPage(id: string | number): Promise<LandingPage
   }
 }
 
+
+export interface LandingHeaderSocialLink {
+  platform?: string;
+  label?: string;
+  url?: string;
+}
+
+export interface LandingHeaderData {
+  helpText?: string;
+  supportPhone?: string;
+  supportText?: string;
+  supportUrl?: string;
+  trackOrderText?: string;
+  followUsText?: string;
+  socialLinks?: LandingHeaderSocialLink[];
+  logoUrl?: string | null;
+  logoAlt?: string;
+  backgroundColor?: string;
+  textColor?: string;
+  accentColor?: string;
+  status?: boolean;
+}
+
+export async function fetchLandingHeader(): Promise<LandingHeaderData | null> {
+  try {
+    const res = await fetch(`${BASE}/landing-pages/header/public`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(15_000),
+    } as RequestInit);
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || null;
+  } catch {
+    return null;
+  }
+}

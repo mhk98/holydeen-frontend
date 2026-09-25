@@ -34,7 +34,7 @@ export default function PopupBanner({ banners = [] }: Props) {
       width={720}
       height={420}
       className="block h-auto w-full rounded"
-      unoptimized
+
       priority
     />
   );

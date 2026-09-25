@@ -8,6 +8,7 @@ import ProductDetailClient from "@/components/ProductDetailClient";
 import Container from "@/components/Container";
 import { fetchProductById } from "@/services/productService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
+import { fetchNavItems } from "@/services/menuService";
 import {
   fetchDeliveryCharges,
   getDeliveryChargeText,
@@ -22,10 +23,11 @@ export default async function ProductDetailPage({
   const productId = Number(id);
   if (isNaN(productId)) notFound();
 
-  const [product, settings, deliveryCharges] = await Promise.all([
+  const [product, settings, deliveryCharges, navItems] = await Promise.all([
     fetchProductById(productId).catch(() => null),
     fetchSiteSettings().catch(() => ({}) as Partial<SiteSetting>),
     fetchDeliveryCharges().catch(() => []),
+    fetchNavItems().catch(() => []),
   ]);
 
   if (!product) notFound();
@@ -33,7 +35,7 @@ export default async function ProductDetailPage({
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <MarqueeBanner text={(settings as SiteSetting).marqueeText ?? null} />
-      <Header logoUrl={(settings as SiteSetting).logoUrl ?? null} />
+      <Header logoUrl={(settings as SiteSetting).logoUrl ?? null} navItems={navItems} />
 
       <main className="flex-1 py-3">
         <Container>

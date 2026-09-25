@@ -21,7 +21,7 @@ export function toPageSlug(value: string | null | undefined): string {
 async function fetchJson<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return null;

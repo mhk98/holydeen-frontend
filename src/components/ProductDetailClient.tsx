@@ -6,7 +6,7 @@
 // import { Product } from "@/data/products";
 // import { useCart } from "@/context/CartContext";
 
-// const PRIMARY   = "#071B52";
+// const PRIMARY   = "#1A1A1A";
 // const SECONDARY = "#C79524";
 // const fmt = (v: number) => v.toLocaleString("en-US");
 
@@ -71,7 +71,7 @@
 //             alt={product.name}
 //             fill
 //             className="object-contain"
-//             unoptimized
+//
 //           />
 //         </div>
 
@@ -98,7 +98,7 @@
 //                       borderColor: activeIdx === realIdx ? PRIMARY : "#e5e7eb",
 //                     }}
 //                   >
-//                     <Image src={img} alt="" fill className="object-contain" unoptimized />
+//                     <Image src={img} alt="" fill className="object-contain" />
 //                   </button>
 //                 );
 //               })}
@@ -304,7 +304,7 @@ import {
   type ProductReview,
 } from "@/services/productService";
 
-const PRIMARY = "#071B52";
+const PRIMARY = "#1A1A1A";
 const SECONDARY = "#C79524";
 const ACCENT = "#D7262E";
 
@@ -453,7 +453,6 @@ export default function ProductDetailClient({
             alt={product.name}
             fill
             className="object-contain p-4"
-            unoptimized
           />
         </div>
 
@@ -473,7 +472,6 @@ export default function ProductDetailClient({
                   alt=""
                   fill
                   className="object-contain p-2"
-                  unoptimized
                 />
               </button>
             ))}

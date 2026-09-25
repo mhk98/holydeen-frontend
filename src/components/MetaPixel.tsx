@@ -1,6 +1,8 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { BASE } from "@/lib/api";
+import { markPixelsReady, trackPageView } from "@/lib/pixel";
 
 interface TrackingConfig {
   metaPixels?: { pixelsId: string }[];
@@ -30,7 +32,6 @@ function initMeta(pixelIds: string[]) {
     appendScript("meta-pixel-sdk", "https://connect.facebook.net/en_US/fbevents.js");
   }
   pixelIds.forEach((id) => window.fbq("init", id));
-  window.fbq("track", "PageView");
 }
 
 function initTiktok(pixelCodes: string[]) {
@@ -77,7 +78,6 @@ function initTiktok(pixelCodes: string[]) {
     const loader = (window.ttq as unknown as { load?: (pixelCode: string) => void })?.load;
     if (loader) loader(code);
   });
-  window.ttq?.page?.();
 }
 
 function initGoogleAds(configs: NonNullable<TrackingConfig["googleAds"]>) {
@@ -90,10 +90,12 @@ function initGoogleAds(configs: NonNullable<TrackingConfig["googleAds"]>) {
     window.dataLayer.push(args);
   };
   window.gtag("js", new Date());
-  configs.forEach((item) => window.gtag?.("config", item.conversionId));
+  configs.forEach((item) => window.gtag?.("config", item.conversionId, { send_page_view: false }));
 }
 
 export default function MetaPixel() {
+  const pathname = usePathname();
+
   useEffect(() => {
     fetch(`${BASE}/tracking/config`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
@@ -103,8 +105,14 @@ export default function MetaPixel() {
         initTiktok((config.tiktokPixels || []).map((item) => item.pixelCode).filter(Boolean));
         initGoogleAds(config.googleAds || []);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(markPixelsReady);
   }, []);
+
+  // Fires on first load and on every client-side route change; browser side waits for init
+  useEffect(() => {
+    trackPageView();
+  }, [pathname]);
 
   return null;
 }

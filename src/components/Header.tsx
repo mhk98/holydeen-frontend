@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,11 +11,15 @@ import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
 import { trackPixelEvent } from "@/lib/pixel";
 
-const PRIMARY   = "#071B52";   // logo leaf green
-const SECONDARY = "#C79524";   // logo mango orange
+const PRIMARY   = "#1A1A1A";   // logo black
+const SECONDARY = "#C79524";   // logo gold
 
 interface HeaderProps {
   logoUrl?: string | null;
+  // When the parent is a Server Component it can fetch this once (cached,
+  // deduped against any other /menu/public call in the same render) and
+  // pass it down, skipping the extra client round-trip below.
+  navItems?: NavItem[];
 }
 
 function applyFavicon(url: string | null) {
@@ -27,33 +31,35 @@ function applyFavicon(url: string | null) {
   if (!existing) document.head.appendChild(link);
 }
 
-function HeaderInner({ logoUrl }: HeaderProps) {
+function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
   const [mobileOpen,    setMobileOpen]    = useState(false);
   const [openDrop,      setOpenDrop]      = useState<string | null>(null);
   const [mobileExpand,  setMobileExpand]  = useState<string | null>(null);
   const [search,        setSearch]        = useState("");
-  const [navItems,      setNavItems]      = useState<NavItem[]>([]);
+  const [navItems,      setNavItems]      = useState<NavItem[]>(navItemsProp ?? []);
   const [resolvedLogo,  setResolvedLogo]  = useState<string | null>(logoUrl || null);
   // Search dropdown
-  const [allProducts,   setAllProducts]   = useState<Product[]>([]);
-  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen,    setSearchOpen]    = useState(false);
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const searchRef       = useRef<HTMLDivElement>(null);
   const mobileSearchRef = useRef<HTMLDivElement>(null);
   const lastSearchTrackedRef = useRef("");
+  const searchSeqRef = useRef(0);
   const navRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const activeMenu = searchParams.get("menu") || "";
   const activeSub  = searchParams.get("sub")  || "";
   const activeChild = searchParams.get("child") || "";
 
-  // Fetch dynamic menu from backend; fall back to static if unavailable
+  // If the parent (a Server Component) already fetched the menu, skip this
+  // fetch entirely — otherwise fall back to fetching it here on mount.
   useEffect(() => {
+    if (navItemsProp !== undefined) return;
     fetchNavItems().then((items) => {
       if (items.length > 0) setNavItems(items);
     });
-  }, []);
+  }, [navItemsProp]);
 
   // Sync logo from prop (server-side) or fetch from API on client
   useEffect(() => {
@@ -64,28 +70,34 @@ function HeaderInner({ logoUrl }: HeaderProps) {
     });
   }, [logoUrl]);
 
-  // Lazily load all products when the search bar is first focused
-  const loadProducts = useCallback(async () => {
-    if (productsLoaded) return;
-    try {
-      const { products } = await fetchStorefrontProducts({ limit: 500 });
-      setAllProducts(products);
-      setProductsLoaded(true);
-    } catch (e) {
-      console.error("Search: failed to load products", e);
-    }
-  }, [productsLoaded]);
-
-  // Filter products on every keystroke
+  // Debounced server-side search — queries the backend directly instead of
+  // bulk-loading the whole catalog into the browser and filtering locally.
   useEffect(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) { setSearchResults([]); setSearchOpen(false); return; }
-    const filtered = allProducts
-      .filter((p) => p.name?.toLowerCase().includes(q))
-      .slice(0, 10);
-    setSearchResults(filtered);
+    const q = search.trim();
+    if (!q) {
+      setSearchResults([]);
+      setSearchOpen(false);
+      setSearchLoading(false);
+      return;
+    }
     setSearchOpen(true);
-  }, [search, allProducts]);
+    setSearchLoading(true);
+    const seq = ++searchSeqRef.current;
+    const timer = window.setTimeout(() => {
+      fetchStorefrontProducts({ searchTerm: q, limit: 10 })
+        .then(({ products }) => {
+          if (searchSeqRef.current === seq) setSearchResults(products);
+        })
+        .catch((e) => {
+          console.error("Search: failed to fetch products", e);
+          if (searchSeqRef.current === seq) setSearchResults([]);
+        })
+        .finally(() => {
+          if (searchSeqRef.current === seq) setSearchLoading(false);
+        });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
   // Close search dropdown when clicking outside (both mobile & desktop search)
   useEffect(() => {
@@ -179,7 +191,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
             <div ref={cartRef} className="relative" style={{ flexShrink: 0 }}>
               <button
                 onClick={() => setCartOpen((o) => !o)}
-                className="flex items-center text-gray-600 hover:text-[#071B52] transition-colors"
+                className="flex items-center text-gray-600 hover:text-[#1A1A1A] transition-colors"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 4, position: "relative" }}
               >
                 <div className="relative">
@@ -204,7 +216,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                         <div style={{ maxHeight: 340, overflowY: "auto" }}>
                           {items.map((item, idx) => (
                             <div key={idx} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid #f5f5f5" }}>
-                              <Image src={item.image} alt={item.name} width={52} height={52} style={{ borderRadius: 6, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} unoptimized />
+                              <Image src={item.image} alt={item.name} width={52} height={52} style={{ borderRadius: 6, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</p>
                                 <p style={{ margin: "3px 0 0", fontSize: 12, color: "#777" }}>Qty: {item.qty}</p>
@@ -247,7 +259,6 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                 type="text"
                 placeholder="Search Product..."
                 value={search}
-                onFocus={loadProducts}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
                 style={{ flex: 1, height: "100%", background: "#f7f7f7", border: "none", outline: "none", padding: "0 10px", fontSize: 13, color: "#555" }}
@@ -267,7 +278,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
                     <div style={{ width: 42, height: 42, borderRadius: 6, overflow: "hidden", border: "1px solid #e5e7eb", flexShrink: 0, position: "relative", background: "#f9fafb" }}>
-                      <Image src={p.image} alt={p.name} fill className="object-contain" unoptimized />
+                      <Image src={p.image} alt={p.name} fill className="object-contain" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 13, color: "#1f2937", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
@@ -280,7 +291,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                 ))}
               </div>
             )}
-            {searchOpen && search.trim() && searchResults.length === 0 && productsLoaded && (
+            {searchOpen && search.trim() && searchResults.length === 0 && !searchLoading && (
               <div style={{ position: "absolute", top: "calc(100% + 2px)", left: 14, right: 14, background: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", borderRadius: 8, border: "1px solid #e5e7eb", zIndex: 9999, padding: "14px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
                 কোনো পণ্য পাওয়া যায়নি
               </div>
@@ -314,7 +325,6 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                 type="text"
                 placeholder="Search Product..."
                 value={search}
-                onFocus={loadProducts}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setSearchOpen(false)}
                 style={{ width: "90%", height: "100%", background: "#f7f7f7", border: "none", outline: "none", padding: "0 12px", fontSize: 12, color: "#555" }}
@@ -333,7 +343,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
                     <div style={{ width: 50, height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid #e5e7eb", flexShrink: 0, position: "relative", background: "#f9fafb" }}>
-                      <Image src={p.image} alt={p.name} fill className="object-contain" unoptimized />
+                      <Image src={p.image} alt={p.name} fill className="object-contain" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 14, color: "#1f2937", fontWeight: 500 }}>{p.name}</p>
@@ -346,7 +356,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                 ))}
               </div>
             )}
-            {searchOpen && search.trim() && searchResults.length === 0 && productsLoaded && (
+            {searchOpen && search.trim() && searchResults.length === 0 && !searchLoading && (
               <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, background: "#fff", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", borderRadius: 8, border: "1px solid #e5e7eb", zIndex: 9999, padding: "20px", textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
                 কোনো পণ্য পাওয়া যায়নি
               </div>
@@ -355,7 +365,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
 
           {/* Right icons */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 20 }}>
-            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#071B52] transition-colors">
+            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
               <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <rect x="1" y="3" width="15" height="13" rx="1" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
@@ -363,12 +373,12 @@ function HeaderInner({ logoUrl }: HeaderProps) {
             </Link>
 
             {isLoggedIn ? (
-              <button onClick={customerLogout} className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#071B52] transition-colors" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <button onClick={customerLogout} className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                 <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
                 <span style={{ fontSize: 11 }}>Logout</span>
               </button>
             ) : (
-              <Link href="/login" className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#071B52] transition-colors">
+              <Link href="/login" className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
                 <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                 <span style={{ fontSize: 11 }}>Login</span>
               </Link>
@@ -376,7 +386,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
 
             {/* Cart with hover dropdown */}
             <div ref={cartRef} className="relative" onMouseEnter={() => setCartOpen(true)} onMouseLeave={() => setCartOpen(false)}>
-              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#071B52] transition-colors">
+              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
                 <div className="relative">
                   <svg width={26} height={26} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
@@ -396,7 +406,7 @@ function HeaderInner({ logoUrl }: HeaderProps) {
                         <div style={{ maxHeight: 380, overflowY: "auto" }}>
                           {items.map((item, idx) => (
                             <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
-                              <Image src={item.image} alt={item.name} width={64} height={64} style={{ borderRadius: 8, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} unoptimized />
+                              <Image src={item.image} alt={item.name} width={64} height={64} style={{ borderRadius: 8, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</p>
                                 <p style={{ margin: "5px 0 0", fontSize: 13, color: "#777" }}>Qty: {item.qty}</p>
@@ -607,10 +617,10 @@ function HeaderInner({ logoUrl }: HeaderProps) {
   );
 }
 
-export default function Header({ logoUrl }: HeaderProps) {
+export default function Header({ logoUrl, navItems }: HeaderProps) {
   return (
     <Suspense>
-      <HeaderInner logoUrl={logoUrl} />
+      <HeaderInner logoUrl={logoUrl} navItems={navItems} />
     </Suspense>
   );
 }

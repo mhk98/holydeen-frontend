@@ -25,6 +25,7 @@ export interface PixelProductData {
   value: number;
   currency: string;
   num_items?: number;
+  order_id?: string | number;
 }
 
 // Meta standard events — everything else goes through trackCustom
@@ -56,7 +57,9 @@ const GOOGLE_EVENT_NAMES: Record<string, string> = {
   Purchase: "purchase",
 };
 
-function eventId(eventName: string) {
+function eventId(eventName: string, orderId?: string | number) {
+  // Order-based id lets Meta/TikTok dedupe repeated Purchase hits for the same order
+  if (orderId !== undefined && orderId !== "") return `${eventName}.${orderId}`;
   return `${eventName}.${Date.now()}.${Math.random().toString(16).slice(2)}`;
 }
 
@@ -86,6 +89,21 @@ export function getPixelClickData() {
   };
 }
 
+// Pixels are initialised only after /tracking/config loads (MetaPixel.tsx). Events fired
+// earlier — e.g. ViewContent on mount — are held here so the browser side isn't lost.
+let pixelsReady = false;
+const pendingBrowserEvents: (() => void)[] = [];
+
+function runWhenPixelsReady(send: () => void) {
+  if (pixelsReady) send();
+  else pendingBrowserEvents.push(send);
+}
+
+export function markPixelsReady() {
+  pixelsReady = true;
+  pendingBrowserEvents.splice(0).forEach((send) => send());
+}
+
 function currentUrl() {
   if (typeof window === "undefined") return "";
   return window.location.href;
@@ -94,7 +112,7 @@ function currentUrl() {
 function sendServerEvent(
   eventName: string,
   id: string,
-  data: PixelProductData,
+  data: Partial<PixelProductData>,
   userData?: PixelUserData,
 ) {
   fetch(`${BASE}/tracking/events`, {
@@ -122,15 +140,21 @@ export function trackPixelEvent(
 ) {
   if (typeof window === "undefined") return;
 
-  const id = eventId(eventName);
+  const id = eventId(eventName, eventName === "Purchase" ? data.order_id : undefined);
+  // Name/phone go only to the server (hashed there) — Meta flags raw PII in browser custom data.
   const payload: Record<string, unknown> = { ...data };
+  if (userData?.customerId) payload.customer_id = userData.customerId;
 
-  if (userData) {
-    if (userData.customerId) payload.customer_id = userData.customerId;
-    if (userData.name)       payload.customer_name = userData.name;
-    if (userData.phone)      payload.customer_phone = userData.phone;
-  }
+  runWhenPixelsReady(() => sendBrowserEvent(eventName, id, data, payload));
+  sendServerEvent(eventName, id, data, userData);
+}
 
+function sendBrowserEvent(
+  eventName: string,
+  id: string,
+  data: PixelProductData,
+  payload: Record<string, unknown>,
+) {
   if (typeof window.fbq === "function") {
     const method = STANDARD_EVENTS.has(eventName) ? "track" : "trackCustom";
     window.fbq(method, eventName, payload, { eventID: id });
@@ -144,6 +168,7 @@ export function trackPixelEvent(
       window.gtag("event", googleEventName, {
         value: data.value,
         currency: data.currency,
+        ...(data.order_id !== undefined ? { transaction_id: String(data.order_id) } : {}),
         items: data.content_ids.map((item) => ({
           item_id: String(item),
           item_name: data.content_name,
@@ -160,9 +185,31 @@ export function trackPixelEvent(
       send_to: `${googleConfig.conversionId}/${googleConfig.conversionLabel}`,
       value: data.value,
       currency: data.currency,
-      transaction_id: id,
+      transaction_id: String(data.order_id ?? id),
       }));
   }
+}
 
-  sendServerEvent(eventName, id, data, userData);
+export function trackPageView() {
+  if (typeof window === "undefined") return;
+
+  const id = eventId("PageView");
+  const pageLocation = currentUrl();
+
+  runWhenPixelsReady(() => {
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "PageView", {}, { eventID: id });
+    }
+
+    window.ttq?.page?.();
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "page_view", {
+        page_location: pageLocation,
+        page_referrer: document.referrer || undefined,
+      });
+    }
+  });
+
+  sendServerEvent("PageView", id, {});
 }

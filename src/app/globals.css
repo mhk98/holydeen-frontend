@@ -2,6 +2,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Unlayered, so it beats Tailwind utilities. Landing pages opt out so their
+   utility-based layout (mx-auto, px-*, py-*) works; Tailwind preflight still
+   resets them. */
+:where(:not(.landing-root, .landing-root *)) {
   margin: 0;
   padding: 0;
 }
@@ -357,9 +363,9 @@ body {
 }
 
 .track-order-input:focus {
-  border-color: #071B52;
+  border-color: #1A1A1A;
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(7, 55, 99, 0.12);
+  box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.12);
 }
 
 .track-order-button {
@@ -633,7 +639,7 @@ body {
   margin: 0 0 16px 22px;
 }
 .dynamic-page-content a {
-  color: #071B52;
+  color: #1A1A1A;
   text-decoration: underline;
 }
 .dynamic-page-content .policy-intro {

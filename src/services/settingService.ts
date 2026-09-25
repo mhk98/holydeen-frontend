@@ -185,7 +185,7 @@ export async function fetchSiteSettings(): Promise<SiteSetting> {
     websiteFooter: {},
   };
   try {
-    const res = await fetch(`${BASE}/site-settings/public`, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(`${BASE}/site-settings/public`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return empty;
     const json = await res.json();
     const d = json.data || {};

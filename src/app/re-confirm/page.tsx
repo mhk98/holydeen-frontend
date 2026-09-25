@@ -22,9 +22,9 @@ const normalizePhoneNumber = (value: string) =>
     .replace(/[০-৯]/g, (digit) => String("০১২৩৪৫৬৭৮৯".indexOf(digit)))
     .replace(/\D/g, "");
 
-const PRIMARY = "#071B52";
-const TEAL = "#C79524";
-const SOFT_TEAL = "#eefbfc";
+const PRIMARY = "#1A1A1A";
+const GOLD = "#C79524";
+const SOFT_GOLD = "#FBF3DE";
 const TEXT = "#111827";
 const MUTED = "#4b5563";
 
@@ -119,6 +119,7 @@ function ReConfirmContent() {
           currency: "BDT",
           num_items:
             confirmedOrder.items?.reduce((sum, item) => sum + item.qty, 0) || 0,
+          order_id: order.orderId,
         },
         { name: confirmedOrder.customerName || order.name, phone: order.phone },
       );
@@ -180,11 +181,11 @@ function ReConfirmContent() {
                 style={{
                   maxWidth: 690,
                   margin: "0 auto",
-                  background: SOFT_TEAL,
-                  border: `1px solid ${TEAL}33`,
+                  background: SOFT_GOLD,
+                  border: `1px solid ${GOLD}33`,
                   borderRadius: 10,
                   padding: "42px 34px",
-                  boxShadow: "0 18px 42px rgba(7,55,99,0.10)",
+                  boxShadow: "0 18px 42px rgba(26, 26, 26,0.10)",
                 }}
               >
                 <div
@@ -238,7 +239,7 @@ function ReConfirmContent() {
                     fontSize: 18,
                     fontWeight: 800,
                     textDecoration: "none",
-                    boxShadow: "0 10px 22px rgba(7,55,99,0.20)",
+                    boxShadow: "0 10px 22px rgba(26, 26, 26,0.20)",
                   }}
                 >
                   অর্ডার ট্র্যাক করুন
@@ -276,11 +277,11 @@ function ReConfirmContent() {
                 style={{
                   maxWidth: 690,
                   margin: "0 auto",
-                  background: SOFT_TEAL,
-                  border: `1px solid ${TEAL}33`,
+                  background: SOFT_GOLD,
+                  border: `1px solid ${GOLD}33`,
                   borderRadius: 10,
                   padding: "34px 34px 36px",
-                  boxShadow: "0 18px 42px rgba(7,55,99,0.10)",
+                  boxShadow: "0 18px 42px rgba(26, 26, 26,0.10)",
                   textAlign: "center",
                 }}
               >
@@ -294,7 +295,7 @@ function ReConfirmContent() {
                       marginBottom: 22,
                       borderRadius: 999,
                       background: "#fff",
-                      border: `1px solid ${TEAL}66`,
+                      border: `1px solid ${GOLD}66`,
                       color: PRIMARY,
                       padding: "0 16px",
                       fontSize: 13,
@@ -341,7 +342,7 @@ function ReConfirmContent() {
                       fontSize: "clamp(18px, 2.6vw, 24px)",
                       fontWeight: 900,
                       cursor: loading ? "not-allowed" : "pointer",
-                      boxShadow: "0 10px 22px rgba(7,55,99,0.20)",
+                      boxShadow: "0 10px 22px rgba(26, 26, 26,0.20)",
                     }}
                   >
                     {loading ? "OTP পাঠানো হচ্ছে..." : "Re-Confirm Order"}
@@ -372,7 +373,7 @@ function ReConfirmContent() {
                       style={{
                         width: "100%",
                         height: 54,
-                        border: `1px solid ${TEAL}88`,
+                        border: `1px solid ${GOLD}88`,
                         borderRadius: 8,
                         textAlign: "center",
                         fontSize: 20,
@@ -393,7 +394,7 @@ function ReConfirmContent() {
                         width: "100%",
                         border: 0,
                         borderRadius: 8,
-                        background: verifying ? "#9ca3af" : TEAL,
+                        background: verifying ? "#9ca3af" : GOLD,
                         color: "#fff",
                         fontSize: 18,
                         fontWeight: 900,
@@ -443,7 +444,7 @@ function ReConfirmContent() {
                     style={{
                       margin: "18px auto 0",
                       maxWidth: 520,
-                      border: `1px solid ${TEAL}66`,
+                      border: `1px solid ${GOLD}66`,
                       borderRadius: 8,
                       background: "#fff",
                       color: PRIMARY,
@@ -468,11 +469,11 @@ function ReConfirmContent() {
                   }}
                 >
                   <p style={{ margin: "0 0 10px", display: "flex", gap: 10 }}>
-                    <span style={{ color: TEAL, fontWeight: 900 }}>✓</span>
+                    <span style={{ color: GOLD, fontWeight: 900 }}>✓</span>
                     <span>কনফার্ম করলেই অর্ডার দ্রুত কুরিয়ারে যাবে।</span>
                   </p>
                   <p style={{ margin: 0, display: "flex", gap: 10 }}>
-                    <span style={{ color: TEAL, fontWeight: 900 }}>✓</span>
+                    <span style={{ color: GOLD, fontWeight: 900 }}>✓</span>
                     <span>
                       অথবা রিকনফার্ম করতে আমাদের কাস্টমার সার্ভিস সেন্টার থেকে
                       কলের অপেক্ষা করতে হবে।

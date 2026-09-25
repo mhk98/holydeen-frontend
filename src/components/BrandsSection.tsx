@@ -38,7 +38,6 @@ export default function BrandsSection({ brands: brandsProp }: Props) {
                     fill
                     className="object-contain opacity-80 transition-opacity hover:opacity-100"
                     style={{ padding: 26 }}
-                    unoptimized
                   />
                 </div>
               </a>

@@ -53,7 +53,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
         <div
           className="flex items-center"
           style={{
-            background: "#071B52", borderRadius: "8px 8px 0 0",
+            background: "#1A1A1A", borderRadius: "8px 8px 0 0",
             height: 58, paddingLeft: 28, paddingRight: 28,
           }}
         >
@@ -73,7 +73,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
               <Image
                 src={product.image} alt={product.name}
                 fill
-                className="object-cover" unoptimized
+                className="object-cover"
               />
             </div>
 
@@ -102,9 +102,9 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                         className="font-semibold transition-colors text-sm"
                         style={{
                           height: 36, padding: "0 14px",
-                          border: `1.5px solid ${selectedColor === c ? "#071B52" : "#ccc"}`,
+                          border: `1.5px solid ${selectedColor === c ? "#1A1A1A" : "#ccc"}`,
                           borderRadius: 4,
-                          background: selectedColor === c ? "#071B52" : "#fff",
+                          background: selectedColor === c ? "#1A1A1A" : "#fff",
                           color: selectedColor === c ? "#fff" : "#444",
                         }}
                       >
@@ -127,9 +127,9 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                         className="font-semibold transition-colors text-sm"
                         style={{
                           width: 44, height: 36,
-                          border: `1.5px solid ${selectedSize === s ? "#071B52" : "#ccc"}`,
+                          border: `1.5px solid ${selectedSize === s ? "#1A1A1A" : "#ccc"}`,
                           borderRadius: 4,
-                          background: selectedSize === s ? "#071B52" : "#fff",
+                          background: selectedSize === s ? "#1A1A1A" : "#fff",
                           color: selectedSize === s ? "#fff" : "#444",
                         }}
                       >
@@ -169,7 +169,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                 <button
                   onClick={handleOrder}
                   className="flex-1 text-white font-bold tracking-wide transition-opacity hover:opacity-90"
-                  style={{ background: "#071B52", borderRadius: 4, height: 42, fontSize: 15 }}
+                  style={{ background: "#1A1A1A", borderRadius: 4, height: 42, fontSize: 15 }}
                 >
                   + ORDER NOW
                 </button>

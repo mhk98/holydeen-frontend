@@ -17,7 +17,7 @@ function toUrl(file: string): string {
 export async function fetchBrands(): Promise<BrandItem[]> {
   try {
     const res = await fetch(`${BASE}/brand/public`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];

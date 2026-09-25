@@ -18,7 +18,7 @@ export default function MarqueeBanner({ text }: Props) {
   return (
     <div
       className="hidden sm:flex items-center"
-      style={{ background: "#071B52", height: 50 }}
+      style={{ background: "#1A1A1A", height: 50 }}
     >
       <div style={{ width: "90%", margin: "0 auto" }} className="flex items-center justify-between gap-4 overflow-hidden">
         {/* Scrolling marquee text */}

@@ -68,7 +68,7 @@ function toImageUrl(file: string | null | undefined): string | null {
 
 export async function fetchNavItems(): Promise<NavItem[]> {
   try {
-    const res = await fetch(`${BASE}/menu/public`, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(`${BASE}/menu/public`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return [];
     const json = await res.json();
     const items: ApiMenuItem[] = json.data || [];
@@ -81,7 +81,7 @@ export async function fetchNavItems(): Promise<NavItem[]> {
 // Returns public category menu items with their admin-managed images.
 export async function fetchCategoryMenus(): Promise<CategoryMenuItem[]> {
   try {
-    const res = await fetch(`${BASE}/menu/public`, { cache: "no-store", signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(`${BASE}/menu/public`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) return [];
     const json = await res.json();
     const items: ApiMenuItem[] = json.data || [];

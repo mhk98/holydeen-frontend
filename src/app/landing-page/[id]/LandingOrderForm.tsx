@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createOrder, saveIncompleteOrder } from "@/services/orderService";
-import { getPixelClickData, trackPixelEvent } from "@/lib/pixel";
+import { getPixelClickData, trackPixelEvent, type PixelUserData } from "@/lib/pixel";
 import type { CreateOrderPayload } from "@/types/api";
 
 export interface LandingOrderOption {
@@ -122,8 +122,13 @@ export default function LandingOrderForm({
     };
   }, [options, selected, subtotal, title]);
 
-  const trackLandingEvent = (eventName: string, value = pixelData.value) => {
-    trackPixelEvent(eventName, { ...pixelData, value });
+  const trackLandingEvent = (
+    eventName: string,
+    value = pixelData.value,
+    orderId?: string | number,
+    userData?: PixelUserData,
+  ) => {
+    trackPixelEvent(eventName, { ...pixelData, value, order_id: orderId }, userData);
   };
 
   const trackAddToCartOnce = () => {
@@ -221,7 +226,10 @@ export default function LandingOrderForm({
       setDraftId(draft.Id);
       if (draft.Id && leadTrackedOrderIdRef.current !== draft.Id) {
         leadTrackedOrderIdRef.current = draft.Id;
-        trackLandingEvent("Lead", total);
+        trackLandingEvent("Lead", total, undefined, {
+          name: nextCustomer.name.trim(),
+          phone: normalizedPhone,
+        });
       }
     } catch {
       // Draft capture is best-effort; final order still shows the user-facing error.
@@ -302,10 +310,11 @@ export default function LandingOrderForm({
 
     setSaving(true);
     trackBeginCheckoutOnce();
-    trackLandingEvent("AddPaymentInfo", total);
+    const pixelUser = { name: customer.name.trim(), phone: normalizedPhone };
+    trackLandingEvent("AddPaymentInfo", total, undefined, pixelUser);
     try {
       const order = await createOrder(buildPayload("pending", normalizedPhone));
-      trackLandingEvent("Purchase", total);
+      trackLandingEvent("Purchase", total, order.Id, pixelUser);
       setSuccess(
         `${labels.successMessage} Order ID: ${order.orderId || order.Id}`,
       );

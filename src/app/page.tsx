@@ -14,8 +14,8 @@ import { fetchStorefrontProducts } from "@/services/productService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 import { fetchBanners } from "@/services/bannerService";
 import { fetchBrands } from "@/services/brandService";
-import { fetchCategoryMenus, type CategoryMenuItem } from "@/services/menuService";
-import type { Product } from "@/data/products";
+import { fetchCategoryMenus, fetchNavItems, type CategoryMenuItem } from "@/services/menuService";
+import type { NavItem, Product } from "@/data/products";
 import type { BannerItem } from "@/services/bannerService";
 import type { BrandItem } from "@/services/brandService";
 
@@ -45,19 +45,24 @@ export default async function Home({
   let banners: { slides: BannerItem[]; sideBanners: BannerItem[]; popupBanners: BannerItem[] } = { slides: [], sideBanners: [], popupBanners: [] };
   let brands: BrandItem[] = [];
   let categoryMenus: CategoryMenuItem[] = [];
+  let navItems: NavItem[] = [];
 
-  const [productsResult, settingsResult, bannersResult, brandsResult, categoryMenusResult] = await Promise.all([
+  const [productsResult, settingsResult, bannersResult, brandsResult, categoryMenusResult, navItemsResult] = await Promise.all([
     fetchStorefrontProducts({ limit: 200, page: 1 }).catch(() => ({ products: [] as Product[] })),
     fetchSiteSettings().catch(() => ({} as Partial<SiteSetting>)),
     fetchBanners().catch(() => ({ slides: [] as BannerItem[], sideBanners: [] as BannerItem[], popupBanners: [] as BannerItem[] })),
     fetchBrands().catch(() => [] as BrandItem[]),
     fetchCategoryMenus().catch(() => [] as CategoryMenuItem[]),
+    // Same /menu/public endpoint + cache options as fetchCategoryMenus above,
+    // so Next.js dedupes this into the same network request automatically.
+    fetchNavItems().catch(() => [] as NavItem[]),
   ]);
   allProducts   = productsResult.products;
   settings      = settingsResult;
   banners       = bannersResult;
   brands        = brandsResult;
   categoryMenus = categoryMenusResult;
+  navItems      = navItemsResult;
 
   let sections: { title: string; products: Product[] }[] = [];
 
@@ -84,7 +89,7 @@ export default async function Home({
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <MarqueeBanner text={settings.marqueeText ?? null} />
-      <Header logoUrl={settings.logoUrl ?? null} />
+      <Header logoUrl={settings.logoUrl ?? null} navItems={navItems} />
       <main className="flex-1">
         {!isFiltered && <HeroBanner slides={banners.slides} sideBanners={banners.sideBanners} />}
         {!isFiltered && <PopupBanner banners={banners.popupBanners} />}

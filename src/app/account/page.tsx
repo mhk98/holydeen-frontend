@@ -11,7 +11,7 @@ import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/api";
 import { useCustomer } from "@/context/CustomerContext";
 
-const PRIMARY = "#071B52";
+const PRIMARY = "#1A1A1A";
 const SECONDARY = "#C79524";
 
 interface OrderItem { name: string; image?: string; qty: number; price: number; size?: string; color?: string; }
@@ -173,7 +173,7 @@ export default function AccountPage() {
                             <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: i < items.length - 1 ? "1px solid #f5f5f5" : "none" }}>
                               <div style={{ width: 48, height: 48, borderRadius: 8, background: "#f3f4f6", overflow: "hidden", flexShrink: 0, position: "relative" }}>
                                 {item.image
-                                  ? <Image src={item.image} alt={item.name} fill style={{ objectFit: "cover" }} unoptimized />
+                                  ? <Image src={item.image} alt={item.name} fill style={{ objectFit: "cover" }} />
                                   : <div style={{ display: "flex", height: "100%", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#9ca3af" }}>IMG</div>
                                 }
                               </div>

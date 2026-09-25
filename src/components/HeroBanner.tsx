@@ -37,10 +37,10 @@ export default function HeroBanner({ slides: slidesProp, sideBanners: sideProp }
           <div style={{ flex: 1, position: "relative", overflow: "hidden", borderRadius: 6 }}>
             {slide.linkUrl ? (
               <a href={slide.linkUrl} target="_blank" rel="noreferrer" style={{ display: "block", width: "100%", height: "100%", position: "relative" }}>
-                <Image src={slide.file} alt={slide.alt} fill style={{ objectFit: "cover", objectPosition: "center" }} unoptimized priority />
+                <Image src={slide.file} alt={slide.alt} fill style={{ objectFit: "cover", objectPosition: "center" }} priority />
               </a>
             ) : (
-              <Image src={slide.file} alt={slide.alt} fill style={{ objectFit: "cover", objectPosition: "center" }} unoptimized priority />
+              <Image src={slide.file} alt={slide.alt} fill style={{ objectFit: "cover", objectPosition: "center" }} priority />
             )}
 
             {/* Dot indicators */}
@@ -101,7 +101,6 @@ export default function HeroBanner({ slides: slidesProp, sideBanners: sideProp }
                     fill
                     style={{ objectFit: "cover", objectPosition: "center" }}
                     className="group-hover:scale-105 transition-transform duration-300"
-                    unoptimized
                   />
                 </a>
               ))}
@@ -128,7 +127,6 @@ export default function HeroBanner({ slides: slidesProp, sideBanners: sideProp }
                   fill
                   style={{ objectFit: "cover", objectPosition: "center" }}
                   className="group-hover:scale-105 transition-transform duration-300"
-                  unoptimized
                 />
               </a>
             ))}

@@ -207,7 +207,7 @@ export default function ContactPage() {
         value: email,
         href: `mailto:${email}`,
         bg: "#fef2f2",
-        color: "#071B52",
+        color: "#1A1A1A",
         icon: "mail" as const,
       },
       hotMail && {

@@ -14,7 +14,7 @@ import {
   type OrderStatusOption,
 } from "@/services/orderStatusService";
 
-const PRIMARY = "#071B52";
+const PRIMARY = "#1A1A1A";
 const SECONDARY = "#C79524";
 
 interface TrackedOrderItem {
@@ -376,7 +376,6 @@ export default function TrackOrderPage() {
                           alt={item.name}
                           fill
                           style={{ objectFit: "cover" }}
-                          unoptimized
                         />
                       ) : (
                         <div
@@ -600,7 +599,7 @@ export default function TrackOrderPage() {
                     value={trackingValue}
                     onChange={(e) => setTrackingValue(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && track()}
-                    placeholder="01700000000 অথবা TJ-20260521-000001"
+                    placeholder="01700000000 অথবা HD-20260521-000001"
                     className="track-order-input"
                   />
                 </div>

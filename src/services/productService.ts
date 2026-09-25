@@ -1,5 +1,5 @@
 import { apiFetch, IMAGES, BASE } from "@/lib/api";
-import { ApiProduct, ApiResponse } from "@/types/api";
+import { ApiMeta, ApiProduct, ApiResponse } from "@/types/api";
 import { Product } from "@/data/products";
 
 interface StorefrontParams {
@@ -96,7 +96,7 @@ function mapToProduct(item: ApiProduct): Product {
 
 export async function fetchProductById(id: number): Promise<Product | null> {
   try {
-    const res = await fetch(`${BASE}/product/storefront/${id}`, { cache: "no-store", signal: AbortSignal.timeout(15_000) } as RequestInit);
+    const res = await fetch(`${BASE}/product/storefront/${id}`, { next: { revalidate: 30 }, signal: AbortSignal.timeout(15_000) } as RequestInit);
     if (!res.ok) return null;
     const json = await res.json();
     if (!json.data) return null;
@@ -109,26 +109,23 @@ export async function fetchProductById(id: number): Promise<Product | null> {
 export async function fetchStorefrontProducts(
   params: StorefrontParams = {}
 ): Promise<StorefrontResult> {
-  const raw = await fetch(`${BASE}/product/storefront`, { cache: "no-store", signal: AbortSignal.timeout(15_000) } as RequestInit);
-  if (!raw.ok) throw new Error("Failed to fetch storefront products");
-  const res: ApiResponse<ApiProduct[]> = await raw.json();
-
-  let products = (res.data || []).map(mapToProduct);
-
-  if (params.searchTerm) {
-    const q = params.searchTerm.toLowerCase();
-    products = products.filter((p) => p.name.toLowerCase().includes(q));
-  }
-
-  const total = products.length;
   const page = params.page ?? 1;
   const limit = params.limit ?? 50;
-  const start = (page - 1) * limit;
-  products = products.slice(start, start + limit);
+  const qs = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (params.searchTerm?.trim()) qs.set("searchTerm", params.searchTerm.trim());
+
+  const raw = await fetch(`${BASE}/product/storefront?${qs.toString()}`, {
+    next: { revalidate: 30 },
+    signal: AbortSignal.timeout(15_000),
+  } as RequestInit);
+  if (!raw.ok) throw new Error("Failed to fetch storefront products");
+  const res: ApiResponse<{ products: ApiProduct[]; meta: ApiMeta }> = await raw.json();
+
+  const products = (res.data?.products || []).map(mapToProduct);
 
   return {
     products,
-    meta: { total, page, limit },
+    meta: res.data?.meta ?? { total: products.length, page, limit },
   };
 }
 

@@ -44,7 +44,7 @@ export function normalizeOrderStatuses(rows?: Partial<OrderStatusOption>[]): Ord
 export async function fetchPublicOrderStatuses(): Promise<OrderStatusOption[]> {
   try {
     const res = await fetch(`${BASE}/order-status/public`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return normalizeOrderStatuses();

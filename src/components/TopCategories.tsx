@@ -21,7 +21,7 @@ export default function TopCategories({ items }: Props) {
         {categories.map((cat) => (
           <Link key={cat.Id} href={"/?menu=" + encodeURIComponent(cat.label)} className={styles.card}>
             <div className={styles.imageBox}>
-              <Image src={cat.imageUrl!} alt={cat.label} fill className={styles.image} draggable={false} unoptimized />
+              <Image src={cat.imageUrl!} alt={cat.label} fill className={styles.image} draggable={false} />
             </div>
             <span className={styles.label}>{cat.label}</span>
           </Link>

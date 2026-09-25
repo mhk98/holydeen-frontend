@@ -249,7 +249,6 @@ export default function Footer({ settings }: Props) {
                       alt="Logo"
                       fill
                       className="object-contain object-left"
-                      unoptimized
                     />
                   </div>
                 </Link>
@@ -357,7 +356,6 @@ export default function Footer({ settings }: Props) {
                         alt={partner.label || "Delivery Partner"}
                         fill
                         className="object-contain object-left"
-                        unoptimized
                       />
                     </div>
                   ))}
@@ -378,7 +376,7 @@ export default function Footer({ settings }: Props) {
             <a
               href="#"
               className="hover:underline"
-              style={{ color: "#071B52" }}
+              style={{ color: "#1A1A1A" }}
             >
               {copyrightBrand}
             </a>
