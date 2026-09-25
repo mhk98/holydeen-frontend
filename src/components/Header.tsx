@@ -11,8 +11,8 @@ import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
 import { trackPixelEvent } from "@/lib/pixel";
 
-const PRIMARY   = "#1A1A1A";   // logo black
-const SECONDARY = "#C79524";   // logo gold
+const PRIMARY   = "#1C2B4B";   // logo navy
+const SECONDARY = "#C39A2B";   // logo gold
 
 interface HeaderProps {
   logoUrl?: string | null;
@@ -191,7 +191,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
             <div ref={cartRef} className="relative" style={{ flexShrink: 0 }}>
               <button
                 onClick={() => setCartOpen((o) => !o)}
-                className="flex items-center text-gray-600 hover:text-[#1A1A1A] transition-colors"
+                className="flex items-center text-gray-600 hover:text-[#1C2B4B] transition-colors"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 4, position: "relative" }}
               >
                 <div className="relative">
@@ -365,7 +365,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
           {/* Right icons */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 20 }}>
-            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
+            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
               <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <rect x="1" y="3" width="15" height="13" rx="1" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
@@ -373,12 +373,12 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
             </Link>
 
             {isLoggedIn ? (
-              <button onClick={customerLogout} className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+              <button onClick={customerLogout} className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                 <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
                 <span style={{ fontSize: 11 }}>Logout</span>
               </button>
             ) : (
-              <Link href="/login" className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
+              <Link href="/login" className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
                 <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                 <span style={{ fontSize: 11 }}>Login</span>
               </Link>
@@ -386,7 +386,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
             {/* Cart with hover dropdown */}
             <div ref={cartRef} className="relative" onMouseEnter={() => setCartOpen(true)} onMouseLeave={() => setCartOpen(false)}>
-              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1A1A1A] transition-colors">
+              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
                 <div className="relative">
                   <svg width={26} height={26} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />

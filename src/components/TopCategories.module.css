@@ -11,7 +11,7 @@
   margin-bottom: 16px;
 }
 .heading {
-  color: #1a1a1a;
+  color: #1C2B4B;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -62,7 +62,7 @@
 .card:hover .image { transform: scale(1.035); }
 .card:hover .label { color: #96701a; }
 .card:focus-visible {
-  outline: 2px solid #c79524;
+  outline: 2px solid #C39A2B;
   outline-offset: -3px;
 }
 @media (max-width: 1023px) {

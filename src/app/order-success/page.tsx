@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
-const SECONDARY = "#C79524";
+const SECONDARY = "#C39A2B";
 
 function getStoredInvoiceId(): string {
   if (typeof window === "undefined") return "";

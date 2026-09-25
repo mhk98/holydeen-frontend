@@ -14,8 +14,8 @@ import {
   type OrderStatusOption,
 } from "@/services/orderStatusService";
 
-const PRIMARY = "#1A1A1A";
-const SECONDARY = "#C79524";
+const PRIMARY = "#1C2B4B";
+const SECONDARY = "#C39A2B";
 
 interface TrackedOrderItem {
   name: string;
