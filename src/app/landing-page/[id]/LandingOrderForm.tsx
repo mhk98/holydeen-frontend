@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCheckoutSession } from "@/lib/useCheckoutSession";
 import { createOrder, saveIncompleteOrder } from "@/services/orderService";
 import { getPixelClickData, trackPixelEvent, type PixelUserData } from "@/lib/pixel";
 import type { CreateOrderPayload } from "@/types/api";
@@ -93,6 +94,7 @@ export default function LandingOrderForm({
   const [success, setSuccess] = useState("");
   const [draftId, setDraftId] = useState<number | undefined>();
   const [deviceId, setDeviceId] = useState("");
+  const checkout = useCheckoutSession();
   const addToCartTrackedRef = useRef(false);
   const beginCheckoutTrackedRef = useRef(false);
   const leadTrackedOrderIdRef = useRef<number | undefined>(undefined);
@@ -218,7 +220,7 @@ export default function LandingOrderForm({
 
   async function saveDraft(nextCustomer = customer) {
     const normalizedPhone = normalizePhone(nextCustomer.phone);
-    if (!normalizedPhone) return;
+    if (!normalizedPhone || checkout.submitting.current) return;
     try {
       const draft = await saveIncompleteOrder(
         buildPayload("incomplete", normalizedPhone, nextCustomer),
@@ -261,6 +263,7 @@ export default function LandingOrderForm({
     customerData = customer,
   ): CreateOrderPayload {
     return {
+      checkoutKey: checkout.getKey(normalizedPhone),
       ...(draftId ? { incompleteOrderId: draftId } : {}),
       deviceId,
       source: "Landing Page",
@@ -296,6 +299,7 @@ export default function LandingOrderForm({
   }
 
   async function placeOrder() {
+    if (checkout.submitting.current) return;
     setError("");
     setSuccess("");
     const normalizedPhone = normalizePhone(customer.phone);
@@ -308,6 +312,7 @@ export default function LandingOrderForm({
       return;
     }
 
+    checkout.submitting.current = true;
     setSaving(true);
     trackBeginCheckoutOnce();
     const pixelUser = { name: customer.name.trim(), phone: normalizedPhone };
@@ -320,9 +325,11 @@ export default function LandingOrderForm({
       );
       setCustomer({ name: "", phone: "", address: "", note: "" });
       setDraftId(undefined);
+      checkout.complete();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Order create failed.");
     } finally {
+      checkout.submitting.current = false;
       setSaving(false);
     }
   }
