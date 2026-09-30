@@ -6,8 +6,9 @@ import {
   useCallback,
   useEffect,
 } from "react";
-import { Product } from "@/data/products";
+import { Product, ProductVariant } from "@/data/products";
 import { fetchProductById } from "@/services/productService";
+import { variantLabel } from "@/lib/useVariantSelection";
 
 export interface CartItem {
   id: number;
@@ -15,6 +16,12 @@ export interface CartItem {
   image: string;
   price: number;
   qty: number;
+  /** Fallback images (product main + gallery) if `image` fails to load. */
+  images?: string[];
+  variantId?: number;
+  /** e.g. "Volume: 6ml, Color: Gold" */
+  variant?: string;
+  /** Legacy cart lines saved before variants had ids. */
   size?: string;
   color?: string;
   freeShipping?: boolean;
@@ -25,8 +32,7 @@ interface CartContextValue {
   addToCart: (
     product: Product,
     qty?: number,
-    size?: string,
-    color?: string,
+    variant?: ProductVariant | null,
   ) => void;
   removeFromCart: (index: number) => void;
   updateQty: (index: number, qty: number) => void;
@@ -70,11 +76,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const addToCart = useCallback(
-    (product: Product, qty = 1, size?: string, color?: string) => {
+    (product: Product, qty = 1, variant?: ProductVariant | null) => {
+      const variantId = variant?.id;
       setItems((prev) => {
-        // match by id + size + color
+        // one cart line per product + variant
         const idx = prev.findIndex(
-          (i) => i.id === product.id && i.size === size && i.color === color,
+          (i) => i.id === product.id && i.variantId === variantId,
         );
         if (idx !== -1) {
           return prev.map((item, i) =>
@@ -86,11 +93,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           {
             id: product.id,
             name: product.name,
-            image: product.image,
-            price: product.discountedPrice,
+            image: variant?.image || product.image,
+            images: [product.image, ...(product.gallery || [])].filter(Boolean),
+            price: variant ? variant.newPrice : product.discountedPrice,
             qty,
-            size,
-            color,
+            variantId,
+            variant: variant ? variantLabel(variant.options) || undefined : undefined,
             freeShipping: Boolean(product.freeShipping),
           },
         ];

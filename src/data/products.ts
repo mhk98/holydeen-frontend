@@ -13,9 +13,11 @@ export interface Product {
   features?: string[];
   sku?: string | null;
   freeShipping?: boolean;
+  /** True when the customer must pick a variant (more than one to choose from). */
   hasVariants?: boolean;
-  sizes?: string[];
-  colors?: string[];
+  priceMin?: number;
+  priceMax?: number;
+  options?: ProductOption[];
   variants?: ProductVariant[];
   inStock?: boolean;
   category?: string | null;
@@ -24,13 +26,18 @@ export interface Product {
 }
 
 export interface ProductVariant {
-  colorId?: number | null;
-  colorName?: string | null;
-  attribute?: string | null;
-  oldPrice?: number | string | null;
-  newPrice?: number | string | null;
-  stock?: number | string | null;
-  availability?: string | null;
+  id: number;
+  options: Record<string, string>;
+  oldPrice: number;
+  newPrice: number;
+  stock: number;
+  inStock: boolean;
+  image?: string | null;
+}
+
+export interface ProductOption {
+  name: string;
+  values: string[];
 }
 
 export interface NavItem {

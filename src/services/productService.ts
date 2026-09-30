@@ -47,19 +47,16 @@ function uniqueImages(images: string[]): string[] {
 }
 
 function mapToProduct(item: ApiProduct): Product {
-  const sizes: string[] = [];
-  const colors: string[] = [];
-  const variants = Array.isArray(item.variants) ? item.variants : [];
-  if (item.variants && Array.isArray(item.variants)) {
-    item.variants.forEach((v) => {
-      if (v.attribute) sizes.push(v.attribute);
-      if (v.colorName) colors.push(v.colorName);
-      if (v.size) sizes.push(...(Array.isArray(v.size) ? v.size : [v.size]));
-      if (v.color) colors.push(...(Array.isArray(v.color) ? v.color : [v.color]));
-    });
-  }
-  const uniqueSizes = [...new Set(sizes.filter(Boolean))];
-  const uniqueColors = [...new Set(colors.filter(Boolean))];
+  const variants = (Array.isArray(item.variants) ? item.variants : []).map((v) => ({
+    id: Number(v.id),
+    options: v.options || {},
+    oldPrice: Number(v.oldPrice || v.newPrice || 0),
+    newPrice: Number(v.newPrice || 0),
+    stock: Number(v.stock || 0),
+    inStock: Boolean(v.inStock),
+    image: v.image ? toImgUrl(v.image) : null,
+  }));
+  const options = (item.options || []).filter((option) => option.values?.length);
   const originalPrice = Number(item.original_price ?? item.sale_price ?? 0);
   const discountedPrice = Number(item.sale_price ?? item.original_price ?? 0);
   const apiDiscount = Number(item.discount ?? 0);
@@ -83,9 +80,10 @@ function mapToProduct(item: ApiProduct): Product {
     features: item.features || [],
     sku: item.sku ?? null,
     freeShipping: toBoolean(item.freeShipping),
-    hasVariants: uniqueSizes.length > 0 || uniqueColors.length > 0,
-    sizes: uniqueSizes.length > 0 ? uniqueSizes : undefined,
-    colors: uniqueColors.length > 0 ? uniqueColors : undefined,
+    hasVariants: variants.length > 1,
+    priceMin: Number(item.price_min ?? discountedPrice),
+    priceMax: Number(item.price_max ?? discountedPrice),
+    options,
     variants,
     inStock: item.inStock,
     category: item.category,

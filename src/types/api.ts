@@ -34,6 +34,9 @@ export interface ApiProduct {
   description?: string | null;
   shortDescription?: string | null;
   features: string[];
+  price_min?: number;
+  price_max?: number;
+  options?: ApiProductOption[];
   variants: ApiVariant[] | null;
   sku: string | null;
   freeShipping?: boolean | string | number;
@@ -41,17 +44,20 @@ export interface ApiProduct {
 }
 
 export interface ApiVariant {
-  colorId?: number | null;
-  colorName?: string | null;
-  attribute?: string | null;
-  size?: string[];
-  color?: string[];
-  weight?: number;
-  unit?: string;
-  oldPrice?: number | string | null;
-  newPrice?: number | string | null;
-  stock?: number | string | null;
+  id: number;
+  options: Record<string, string>;
+  sku?: string | null;
+  image?: string | null;
+  oldPrice: number;
+  newPrice: number;
+  stock: number;
   availability?: string | null;
+  inStock: boolean;
+}
+
+export interface ApiProductOption {
+  name: string;
+  values: string[];
 }
 
 // CustomerOrder
@@ -61,6 +67,9 @@ export interface ApiOrderItem {
   image: string;
   price: number;
   qty: number;
+  variantId?: number;
+  /** Human label, e.g. "Volume: 6ml, Color: Gold" */
+  variant?: string;
   size?: string;
   color?: string;
   freeShipping?: boolean;

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 import Link from "next/link";
 import { Product } from "@/data/products";
 import OrderModal from "./OrderModal";
@@ -33,7 +33,12 @@ export default function ProductCard({ product }: { product: Product }) {
     : undefined;
 
   const handleAddToCart = () => {
-    addToCart(product);
+    // Products with several variants need a choice first.
+    if (product.hasVariants) {
+      setShowModal(true);
+      return;
+    }
+    addToCart(product, 1, product.variants?.[0]);
     setAdded(true);
     setTimeout(() => setAdded(false), 1200);
     trackPixelEvent("AddToCart", pixelProductData, pixelUserData);
@@ -77,8 +82,8 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <Link href={`/product/${product.id}`} className="block overflow-hidden">
           <div className="relative w-full bg-white" style={{ aspectRatio: "1 / 1" }}>
-            <Image
-              src={product.image}
+            <SafeImage
+              sources={[product.image, ...(product.gallery || [])]}
               alt={product.name}
               fill
               className="object-contain object-center p-1.5 transition-transform duration-300 group-hover:scale-105"
@@ -108,6 +113,7 @@ export default function ProductCard({ product }: { product: Product }) {
             ৳{formatPrice(product.originalPrice)}
           </span>
           <span className="font-extrabold" style={{ color: SECONDARY, fontSize: 13 }}>
+            {product.hasVariants && (product.priceMax ?? 0) > product.discountedPrice ? "From " : ""}
             ৳{formatPrice(product.discountedPrice)}
           </span>
         </div>

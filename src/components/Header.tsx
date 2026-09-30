@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NavItem, Product } from "@/data/products";
 import { fetchNavItems } from "@/services/menuService";
@@ -216,10 +216,10 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
                         <div style={{ maxHeight: 340, overflowY: "auto" }}>
                           {items.map((item, idx) => (
                             <div key={idx} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderBottom: "1px solid #f5f5f5" }}>
-                              <Image src={item.image} alt={item.name} width={52} height={52} style={{ borderRadius: 6, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
+                              <SafeImage sources={[item.image, ...(item.images || [])]} alt={item.name} width={52} height={52} style={{ borderRadius: 6, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</p>
-                                <p style={{ margin: "3px 0 0", fontSize: 12, color: "#777" }}>Qty: {item.qty}</p>
+                                <p style={{ margin: "3px 0 0", fontSize: 12, color: "#777" }}>Qty: {item.qty}{item.variant ? ` · ${item.variant}` : ""}</p>
                               </div>
                               <span style={{ fontSize: 13, fontWeight: 700, color: "#333", flexShrink: 0 }}>৳{(item.price * item.qty).toLocaleString("en-US")}</span>
                               <button onClick={() => removeFromCart(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#aaa", flexShrink: 0 }} title="Remove">
@@ -278,7 +278,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
                     <div style={{ width: 42, height: 42, borderRadius: 6, overflow: "hidden", border: "1px solid #e5e7eb", flexShrink: 0, position: "relative", background: "#f9fafb" }}>
-                      <Image src={p.image} alt={p.name} fill className="object-contain" />
+                      <SafeImage sources={[p.image, ...(p.gallery || [])]} alt={p.name} fill className="object-contain" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 13, color: "#1f2937", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</p>
@@ -343,7 +343,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
                     onMouseLeave={(e) => (e.currentTarget.style.background = "")}
                   >
                     <div style={{ width: 50, height: 50, borderRadius: 6, overflow: "hidden", border: "1px solid #e5e7eb", flexShrink: 0, position: "relative", background: "#f9fafb" }}>
-                      <Image src={p.image} alt={p.name} fill className="object-contain" />
+                      <SafeImage sources={[p.image, ...(p.gallery || [])]} alt={p.name} fill className="object-contain" />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <p style={{ margin: 0, fontSize: 14, color: "#1f2937", fontWeight: 500 }}>{p.name}</p>
@@ -406,10 +406,10 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
                         <div style={{ maxHeight: 380, overflowY: "auto" }}>
                           {items.map((item, idx) => (
                             <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderBottom: "1px solid #f5f5f5" }}>
-                              <Image src={item.image} alt={item.name} width={64} height={64} style={{ borderRadius: 8, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
+                              <SafeImage sources={[item.image, ...(item.images || [])]} alt={item.name} width={64} height={64} style={{ borderRadius: 8, objectFit: "cover", border: "1px solid #eee", flexShrink: 0 }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</p>
-                                <p style={{ margin: "5px 0 0", fontSize: 13, color: "#777" }}>Qty: {item.qty}</p>
+                                <p style={{ margin: "5px 0 0", fontSize: 13, color: "#777" }}>Qty: {item.qty}{item.variant ? ` · ${item.variant}` : ""}</p>
                               </div>
                               <span style={{ fontSize: 14, fontWeight: 700, color: "#333", flexShrink: 0 }}>৳{(item.price * item.qty).toLocaleString("en-US")}</span>
                               <button onClick={() => removeFromCart(idx)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#aaa", flexShrink: 0 }} title="Remove">

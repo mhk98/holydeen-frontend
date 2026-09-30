@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
-import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -163,6 +163,7 @@ function CheckoutContent() {
           customerName: name.trim() || "Incomplete Customer",
           customerPhone: normalizedPhone,
           customerAddress: address.trim(),
+          customerDistrict: district || undefined,
           paymentMethod: payment,
           items: items.map((i) => ({
             id: i.id,
@@ -170,6 +171,8 @@ function CheckoutContent() {
             image: i.image,
             price: i.price,
             qty: i.qty,
+            variantId: i.variantId,
+            variant: i.variant,
             size: i.size,
             color: i.color,
             freeShipping: i.freeShipping,
@@ -215,6 +218,7 @@ function CheckoutContent() {
     appliedCoupon?.code,
     deliveryCharge,
     discount,
+    district,
     grandTotal,
     incompleteOrderId,
     items,
@@ -272,6 +276,7 @@ function CheckoutContent() {
         customerName: name,
         customerPhone: normalizedPhone,
         customerAddress: address,
+        customerDistrict: district,
         paymentMethod: payment,
         items: items.map((i) => ({
           id: i.id,
@@ -279,6 +284,8 @@ function CheckoutContent() {
           image: i.image,
           price: i.price,
           qty: i.qty,
+          variantId: i.variantId,
+          variant: i.variant,
           size: i.size,
           color: i.color,
           freeShipping: i.freeShipping,
@@ -912,8 +919,8 @@ function CheckoutContent() {
                             alignItems: "flex-start",
                           }}
                         >
-                          <Image
-                            src={item.image}
+                          <SafeImage
+                            sources={[item.image, ...(item.images || [])]}
                             alt={item.name}
                             width={54}
                             height={54}
@@ -936,6 +943,17 @@ function CheckoutContent() {
                             >
                               {item.name}
                             </p>
+                            {item.variant && (
+                              <p
+                                style={{
+                                  margin: "4px 0 0",
+                                  fontSize: 12,
+                                  color: "#777",
+                                }}
+                              >
+                                {item.variant}
+                              </p>
+                            )}
                             {item.size && (
                               <p
                                 style={{

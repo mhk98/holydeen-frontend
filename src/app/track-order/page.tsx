@@ -22,6 +22,7 @@ interface TrackedOrderItem {
   qty: number;
   price: number;
   image?: string;
+  variant?: string;
   size?: string;
   color?: string;
 }
@@ -417,6 +418,7 @@ export default function TrackOrderPage() {
                         }}
                       >
                         Qty {item.qty || 1}
+                        {item.variant ? ` · ${item.variant}` : ""}
                         {item.size ? ` · Size ${item.size}` : ""}
                         {item.color ? ` · Color ${item.color}` : ""}
                       </p>

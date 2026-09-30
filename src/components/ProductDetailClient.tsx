@@ -292,12 +292,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import SafeImage from "@/components/SafeImage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Product } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
+import { useVariantSelection } from "@/lib/useVariantSelection";
+import VariantSelector from "@/components/VariantSelector";
 import { trackPixelEvent } from "@/lib/pixel";
 import {
   fetchProductReviews,
@@ -328,35 +330,26 @@ export default function ProductDetailClient({
   const allImages = [...new Set([product.image, ...(product.gallery || [])].filter(Boolean))];
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? "");
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] ?? "");
   const [qty, setQty] = useState(1);
   const [addedMsg, setAddedMsg] = useState(false);
   const [reviews, setReviews] = useState<ProductReview[]>([]);
 
-  const selectedVariant = useMemo(() => {
-    const variants = product.variants || [];
-    return variants.find((variant) => {
-      const variantColor = variant.colorName || "";
-      const variantSize = variant.attribute || "";
-      const colorOk = !selectedColor || !variantColor || variantColor === selectedColor;
-      const sizeOk = !selectedSize || !variantSize || variantSize === selectedSize;
-      return colorOk && sizeOk;
-    }) || variants[0] || null;
-  }, [product.variants, selectedColor, selectedSize]);
-
-  const selectedOldPrice = Number(selectedVariant?.oldPrice || product.originalPrice);
-  const selectedNewPrice = Number(selectedVariant?.newPrice || product.discountedPrice);
-  const selectedStock = Number(selectedVariant?.stock || 0);
-  const selectedInStock = selectedVariant
-    ? selectedVariant.availability !== "out of stock" && selectedStock > 0
-    : product.inStock !== false;
-  const cartProduct = {
-    ...product,
-    originalPrice: selectedOldPrice,
-    discountedPrice: selectedNewPrice,
-    inStock: selectedInStock,
-  };
+  const selection = useVariantSelection(product);
+  // Show the selected variant's image whenever the variant changes.
+  const variantImage = selection.selectedVariant?.image || null;
+  const [shownVariantImage, setShownVariantImage] = useState<string | null>(null);
+  if (variantImage !== shownVariantImage) {
+    setShownVariantImage(variantImage);
+    const idx = variantImage ? allImages.indexOf(variantImage) : -1;
+    if (idx >= 0) setActiveIdx(idx);
+  }
+  const selectedOldPrice = selection.oldPrice;
+  const selectedNewPrice = selection.newPrice;
+  const canBuy = selection.inStock && !selection.needsSelection;
+  const selectedDiscount =
+    selectedOldPrice > selectedNewPrice && selectedNewPrice > 0
+      ? Math.round(((selectedOldPrice - selectedNewPrice) / selectedOldPrice) * 100)
+      : 0;
 
   useEffect(() => {
     let active = true;
@@ -397,12 +390,8 @@ export default function ProductDetailClient({
   }, [pixelUserData, product.id, product.name, selectedNewPrice]);
 
   const handleAddToCart = () => {
-    addToCart(
-      cartProduct,
-      qty,
-      selectedSize || undefined,
-      selectedColor || undefined,
-    );
+    if (!canBuy) return;
+    addToCart(product, qty, selection.selectedVariant);
     trackPixelEvent(
       "AddToCart",
       {
@@ -420,12 +409,8 @@ export default function ProductDetailClient({
   };
 
   const handleOrderNow = () => {
-    addToCart(
-      cartProduct,
-      qty,
-      selectedSize || undefined,
-      selectedColor || undefined,
-    );
+    if (!canBuy) return;
+    addToCart(product, qty, selection.selectedVariant);
     router.push("/checkout");
   };
 
@@ -439,17 +424,17 @@ export default function ProductDetailClient({
       {/* Left Image Gallery */}
       <div className="product-gallery">
         <div className="product-main-image">
-          {product.discount > 0 && (
+          {selectedDiscount > 0 && (
             <span
               className="absolute left-2 top-2 z-10 rounded-full text-sm font-bold text-white"
               style={{ background: ACCENT, padding: "5px 13px" }}
             >
-              {product.discount}% Discount
+              {selectedDiscount}% Discount
             </span>
           )}
 
-          <Image
-            src={allImages[activeIdx] || "/placeholder.jpg"}
+          <SafeImage
+            sources={[allImages[activeIdx], ...allImages]}
             alt={product.name}
             fill
             className="object-contain p-4"
@@ -467,8 +452,8 @@ export default function ProductDetailClient({
                   borderColor: activeIdx === idx ? PRIMARY : "#e5e7eb",
                 }}
               >
-                <Image
-                  src={img}
+                <SafeImage
+                  sources={[img]}
                   alt=""
                   fill
                   className="object-contain p-2"
@@ -554,49 +539,15 @@ export default function ProductDetailClient({
           </div>
         )}
 
-        {product.colors && product.colors.length > 0 && (
+        {selection.optionGroups.length > 0 && (
           <div style={{ marginBottom: "1rem" }} className="mb-4">
-            <p className="mb-2 text-sm font-bold text-black">Select Color</p>
-
-            <div className="flex flex-wrap gap-2">
-              {product.colors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setSelectedColor(color)}
-                  className="h-[45px] min-w-[55px] border bg-white px-3  text-sm font-bold transition"
-                  style={{
-                    cursor: "pointer",
-                    borderColor: selectedColor === color ? PRIMARY : "#d1d5db",
-                    color: selectedColor === color ? PRIMARY : "#111",
-                  }}
-                >
-                  {color}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {product.sizes && product.sizes.length > 0 && (
-          <div style={{ marginBottom: "1rem" }} className="mb-4">
-            <p className="mb-2 text-sm font-bold text-black">Select Size</p>
-
-            <div className="flex flex-wrap gap-2">
-              {product.sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className="h-[45px] min-w-[55px] border bg-white px-3  text-sm font-bold transition"
-                  style={{
-                    cursor: "pointer",
-                    borderColor: selectedSize === size ? PRIMARY : "#d1d5db",
-                    color: selectedSize === size ? PRIMARY : "#111",
-                  }}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
+            <VariantSelector selection={selection} />
+            {!selection.needsSelection && !selection.inStock && (
+              <p className="mt-2 text-sm font-semibold text-red-600">এই variant-টি এখন stock-এ নেই</p>
+            )}
+            {selection.needsSelection && (
+              <p className="mt-2 text-sm font-semibold text-red-600">এই combination পাওয়া যাচ্ছে না</p>
+            )}
           </div>
         )}
 
@@ -625,7 +576,7 @@ export default function ProductDetailClient({
         <div className="product-action-row">
           <button
             onClick={handleAddToCart}
-            disabled={product.inStock === false}
+            disabled={!canBuy}
             className="h-[45px] flex-1 rounded-[5px] text-lg font-bold text-white transition disabled:opacity-50"
             style={{
               cursor: "pointer",
@@ -637,7 +588,7 @@ export default function ProductDetailClient({
 
           <button
             onClick={handleOrderNow}
-            disabled={product.inStock === false}
+            disabled={!canBuy}
             className="h-[45px] flex-1 rounded-[5px] text-lg font-bold text-white transition disabled:opacity-50"
             style={{ cursor: "pointer", background: SECONDARY }}
           >

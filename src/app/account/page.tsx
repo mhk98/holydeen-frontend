@@ -14,7 +14,7 @@ import { useCustomer } from "@/context/CustomerContext";
 const PRIMARY = "#1C2B4B";
 const SECONDARY = "#C39A2B";
 
-interface OrderItem { name: string; image?: string; qty: number; price: number; size?: string; color?: string; }
+interface OrderItem { name: string; image?: string; qty: number; price: number; variant?: string; size?: string; color?: string; }
 interface Order {
   Id: number; invoiceId?: string; status: string; total: number; subtotal: number;
   deliveryCharge: number; paymentMethod: string; paymentStatus?: string;
@@ -179,7 +179,7 @@ export default function AccountPage() {
                               </div>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#333", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</p>
-                                <p style={{ margin: "3px 0 0", fontSize: 12, color: "#888" }}>Qty {item.qty}{item.size ? ` · ${item.size}` : ""}{item.color ? ` · ${item.color}` : ""}</p>
+                                <p style={{ margin: "3px 0 0", fontSize: 12, color: "#888" }}>Qty {item.qty}{item.variant ? ` · ${item.variant}` : ""}{item.size ? ` · ${item.size}` : ""}{item.color ? ` · ${item.color}` : ""}</p>
                               </div>
                               <span style={{ fontSize: 13, fontWeight: 700, color: "#111" }}>৳{fmt(item.price * item.qty)}</span>
                             </div>
