@@ -1,84 +1,65 @@
-﻿.section {
-  width: 100%;
-  padding: 20px 24px 24px;
-  background: #fafafa;
-  border: 1px solid #ececec;
-  border-radius: 10px;
+.section {
+  width: 90%;
+  margin: 18px auto 8px;
 }
-.header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-}
+.header { margin-bottom: 12px; }
 .heading {
-  color: #1C2B4B;
+  color: #222;
   font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+  font-weight: 600;
+  line-height: 1.25;
 }
 .item {
-  width: calc((100% - 96px) / 7);
-  padding: 4px 0 8px;
+  width: calc((100% - 60px) / 7);
+  padding: 4px 0;
 }
 .card {
   display: flex;
   height: 100%;
   flex-direction: column;
   align-items: center;
-  padding: 10px 10px 14px;
-  border: 1px solid #e5e8ef;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgb(15 23 42 / 10%);
   text-decoration: none;
-  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 .imageBox {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 130px;
   overflow: hidden;
-  border-radius: 6px;
-  background: #fff;
+  border-radius: 5px;
 }
 .image {
   object-fit: cover;
   transition: transform 250ms ease;
 }
 .label {
-  margin-top: 10px;
+  margin-top: 2px;
   color: #333;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
+  overflow-wrap: anywhere;
   transition: color 200ms ease;
-}
-.card:hover {
-  border-color: #d8bd7d;
-  box-shadow: 0 8px 18px rgb(15 23 42 / 16%);
 }
 .card:hover .image { transform: scale(1.035); }
 .card:hover .label { color: #96701a; }
 .card:focus-visible {
-  outline: 2px solid #C39A2B;
-  outline-offset: -3px;
+  outline: 2px solid #c39a2b;
+  outline-offset: -2px;
+  border-radius: 5px;
 }
 @media (max-width: 1023px) {
-  .section { padding: 18px; }
-  .item { width: calc((100% - 64px) / 5); }
+  .item { width: calc((100% - 40px) / 5); }
+  .imageBox { height: 112px; }
 }
 @media (max-width: 639px) {
-  .section { padding: 16px 14px; }
-  .header { margin-bottom: 12px; }
+  .section { margin: 16px auto 4px; }
+  .header { margin-bottom: 8px; }
   .heading { font-size: 14px; }
-  .item { width: calc((100% - 16px) / 2.5); }
-  .card { padding: 8px 8px 10px; border-radius: 8px; }
-  .imageBox { border-radius: 5px; }
-  .label { margin-top: 8px; font-size: 12px; }
+  .item { width: calc((100% - 20px) / 2.5); }
+  .imageBox { height: 100px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card, .image, .label { transition: none; }
+  .image, .label { transition: none; }
   .card:hover .image { transform: none; }
 }
