@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { BASE, IMAGES } from "@/lib/api";
 import { NavItem, NavChildItem, NavSubItem } from "@/data/products";
 
@@ -66,29 +67,31 @@ function toImageUrl(file: string | null | undefined): string | null {
   return `${IMAGES}/${file}`;
 }
 
-export async function fetchNavItems(): Promise<NavItem[]> {
+// Embedded category images can exceed Next.js's 2 MB persistent cache limit.
+// Share one fresh request per server render without retaining stale menu data.
+const fetchPublicMenus = cache(async (): Promise<ApiMenuItem[]> => {
   try {
-    const res = await fetch(`${BASE}/menu/public`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) });
+    const res = await fetch(`${BASE}/menu/public`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
     if (!res.ok) return [];
     const json = await res.json();
-    const items: ApiMenuItem[] = json.data || [];
-    return items.map((m) => ({ label: m.label, sub: normalizeSubItems(m.subItems) }));
+    return json.data || [];
   } catch {
     return [];
   }
+});
+
+export async function fetchNavItems(): Promise<NavItem[]> {
+  const items = await fetchPublicMenus();
+  return items.map((m) => ({ label: m.label, sub: normalizeSubItems(m.subItems) }));
 }
 
 // Returns public category menu items with their admin-managed images.
 export async function fetchCategoryMenus(): Promise<CategoryMenuItem[]> {
-  try {
-    const res = await fetch(`${BASE}/menu/public`, { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) });
-    if (!res.ok) return [];
-    const json = await res.json();
-    const items: ApiMenuItem[] = json.data || [];
-    return items
-      .map((m) => ({ Id: m.Id, label: m.label, imageUrl: toImageUrl(m.imageFile ?? m.image) }))
-      .filter((m) => m.imageUrl);
-  } catch {
-    return [];
-  }
+  const items = await fetchPublicMenus();
+  return items
+    .map((m) => ({ Id: m.Id, label: m.label, imageUrl: toImageUrl(m.imageFile ?? m.image) }))
+    .filter((m) => m.imageUrl);
 }

@@ -53,8 +53,7 @@ export default async function Home({
     fetchBanners().catch(() => ({ slides: [] as BannerItem[], sideBanners: [] as BannerItem[], popupBanners: [] as BannerItem[] })),
     fetchBrands().catch(() => [] as BrandItem[]),
     fetchCategoryMenus().catch(() => [] as CategoryMenuItem[]),
-    // Same /menu/public endpoint + cache options as fetchCategoryMenus above,
-    // so Next.js dedupes this into the same network request automatically.
+    // Shares the per-render menu request with fetchCategoryMenus above.
     fetchNavItems().catch(() => [] as NavItem[]),
   ]);
   allProducts   = productsResult.products;
