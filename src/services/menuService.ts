@@ -67,12 +67,12 @@ function toImageUrl(file: string | null | undefined): string | null {
   return `${IMAGES}/${file}`;
 }
 
-// Embedded category images can exceed Next.js's 2 MB persistent cache limit.
-// Share one fresh request per server render without retaining stale menu data.
+// Category images are stored as URLs now, so the response is small enough to
+// cache; cache() still dedupes the menu + category calls within one render.
 const fetchPublicMenus = cache(async (): Promise<ApiMenuItem[]> => {
   try {
     const res = await fetch(`${BASE}/menu/public`, {
-      cache: "no-store",
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];

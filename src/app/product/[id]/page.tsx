@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteFooter } from "@/components/SiteChrome";
 import FloatingContact from "@/components/FloatingContact";
 import ScrollToTop from "@/components/ScrollToTop";
 import ProductDetailClient from "@/components/ProductDetailClient";
@@ -14,6 +14,14 @@ import {
   getDeliveryChargeText,
 } from "@/services/shippingChargeService";
 
+// Render each product on its first visit, then serve it from the cache and
+// re-render in the background at most once a minute.
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  return [];
+}
+
 export default async function ProductDetailPage({
   params,
 }: {
@@ -24,7 +32,7 @@ export default async function ProductDetailPage({
   if (isNaN(productId)) notFound();
 
   const [product, settings, deliveryCharges, navItems] = await Promise.all([
-    fetchProductById(productId).catch(() => null),
+    fetchProductById(productId),
     fetchSiteSettings().catch(() => ({}) as Partial<SiteSetting>),
     fetchDeliveryCharges().catch(() => []),
     fetchNavItems().catch(() => []),
@@ -180,7 +188,7 @@ export default async function ProductDetailPage({
         </Container>
       </main>
 
-      <Footer settings={settings as Partial<SiteSetting>} />
+      <SiteFooter />
       <FloatingContact settings={settings as Partial<SiteSetting>} />
       <ScrollToTop />
     </div>

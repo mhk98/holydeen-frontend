@@ -116,7 +116,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     let active = true;
     Promise.all(
       [...new Set(missingShippingFlag.map((item) => item.id))].map((id) =>
-        fetchProductById(id).then(
+        fetchProductById(id).catch(() => null).then(
           (product) => [id, Boolean(product?.freeShipping)] as const,
         ),
       ),

@@ -165,11 +165,14 @@ function FooterLink({
 
 interface Props {
   settings?: Partial<SiteSetting> | null;
+  // Fetched on the server by SiteFooter; skips the client request below.
+  pages?: WebsitePage[];
 }
 
-export default function Footer({ settings }: Props) {
+export default function Footer({ settings, pages: pagesProp }: Props) {
   const [resolvedSettings, setResolvedSettings] = useState<Partial<SiteSetting> | null>(settings || null);
-  const [pages, setPages] = useState<WebsitePage[]>([]);
+  const [fetchedPages, setFetchedPages] = useState<WebsitePage[]>([]);
+  const pages = pagesProp ?? fetchedPages;
   const s = settings || resolvedSettings || {};
   const logoUrl = s.logoUrl || null;
   const footerConfig = s.websiteFooter || {};
@@ -220,8 +223,9 @@ export default function Footer({ settings }: Props) {
   }, [settings]);
 
   useEffect(() => {
-    fetchPublicPages().then(setPages).catch(() => setPages([]));
-  }, []);
+    if (pagesProp) return;
+    fetchPublicPages().then(setFetchedPages).catch(() => setFetchedPages([]));
+  }, [pagesProp]);
 
   if (footerConfig.status === false) return null;
 

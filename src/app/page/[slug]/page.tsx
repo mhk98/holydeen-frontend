@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import { SiteFooter } from "@/components/SiteChrome";
 import FloatingContact from "@/components/FloatingContact";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import { fetchPublicPageBySlug, fetchPublicPages } from "@/services/pageService";
@@ -82,7 +82,7 @@ export default async function DynamicWebsitePage({
         </article>
       </main>
 
-      <Footer settings={settings as Partial<SiteSetting>} />
+      <SiteFooter />
       <FloatingContact settings={settings as Partial<SiteSetting>} />
     </div>
   );

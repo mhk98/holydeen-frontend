@@ -92,16 +92,15 @@ function mapToProduct(item: ApiProduct): Product {
   };
 }
 
+// Returns null only when the product does not exist; network/server errors
+// throw so a cached product page is kept instead of being replaced by a 404.
 export async function fetchProductById(id: number): Promise<Product | null> {
-  try {
-    const res = await fetch(`${BASE}/product/storefront/${id}`, { next: { revalidate: 30 }, signal: AbortSignal.timeout(15_000) } as RequestInit);
-    if (!res.ok) return null;
-    const json = await res.json();
-    if (!json.data) return null;
-    return mapToProduct(json.data as ApiProduct);
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${BASE}/product/storefront/${id}`, { next: { revalidate: 60 }, signal: AbortSignal.timeout(15_000) } as RequestInit);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Failed to fetch product ${id}: ${res.status}`);
+  const json = await res.json();
+  if (!json.data) return null;
+  return mapToProduct(json.data as ApiProduct);
 }
 
 export async function fetchStorefrontProducts(
@@ -113,7 +112,7 @@ export async function fetchStorefrontProducts(
   if (params.searchTerm?.trim()) qs.set("searchTerm", params.searchTerm.trim());
 
   const raw = await fetch(`${BASE}/product/storefront?${qs.toString()}`, {
-    next: { revalidate: 30 },
+    next: { revalidate: 60 },
     signal: AbortSignal.timeout(15_000),
   } as RequestInit);
   if (!raw.ok) throw new Error("Failed to fetch storefront products");

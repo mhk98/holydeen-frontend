@@ -7,7 +7,7 @@ import PopupBanner from "@/components/PopupBanner";
 import TopCategories from "@/components/TopCategories";
 import ProductSection from "@/components/ProductSection";
 import BrandsSection from "@/components/BrandsSection";
-import Footer from "@/components/Footer";
+import { SiteFooter } from "@/components/SiteChrome";
 import FloatingContact from "@/components/FloatingContact";
 import ScrollToTop from "@/components/ScrollToTop";
 import { fetchStorefrontProducts } from "@/services/productService";
@@ -121,7 +121,7 @@ export default async function Home({
 
         {!isFiltered && <BrandsSection brands={brands} />}
       </main>
-      <Footer settings={settings} />
+      <SiteFooter />
       <FloatingContact settings={settings} />
       <ScrollToTop />
     </div>
