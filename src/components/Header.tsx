@@ -9,6 +9,7 @@ import { fetchStorefrontProducts } from "@/services/productService";
 import { fetchSiteSettings } from "@/services/settingService";
 import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
+import AccountMenu from "@/components/AccountMenu";
 import { trackPixelEvent } from "@/lib/pixel";
 
 const PRIMARY   = "#1C2B4B";   // logo navy
@@ -111,7 +112,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
     return () => document.removeEventListener("mousedown", close);
   }, []);
   const { items, removeFromCart, totalItems, totalPrice } = useCart();
-  const { isLoggedIn, logout: customerLogout, customer } = useCustomer();
+  const { customer } = useCustomer();
   const [cartOpen, setCartOpen] = useState(false);
   const cartRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -168,8 +169,8 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
         {/* ══ MOBILE layout (< md): 2 rows ══ */}
         <div className="md:hidden">
-          {/* Row 1: hamburger | logo | cart */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 14px" }}>
+          {/* Row 1: hamburger | logo | track order · account · cart */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "8px 12px" }}>
 
             {/* Hamburger */}
             <button onClick={() => setMobileOpen(!mobileOpen)} style={{ color: "#374151", background: "none", border: "none", cursor: "pointer", padding: 4, flexShrink: 0 }}>
@@ -179,30 +180,42 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
             </button>
 
             {/* Logo — centered */}
-            <Link href="/" style={{ flex: 1, display: "flex", justifyContent: "center" }}>
-              <div style={{ position: "relative", width: 110, height: 44 }}>
+            <Link href="/" style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+              <div style={{ position: "relative", width: "100%", maxWidth: 110, height: 44 }}>
                 {resolvedLogo && (
                   <img src={resolvedLogo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                 )}
               </div>
             </Link>
 
+            {/* Right icons: same three as desktop, with labels */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+            <Link href="/track-order" className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
+              <svg width={22} height={22} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                <rect x="1" y="3" width="15" height="13" rx="1" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+              </svg>
+              <span style={{ fontSize: 10, whiteSpace: "nowrap" }}>Track Order</span>
+            </Link>
+
+            <AccountMenu compact />
+
             {/* Cart icon */}
             <div ref={cartRef} className="relative" style={{ flexShrink: 0 }}>
               <button
                 onClick={() => setCartOpen((o) => !o)}
-                className="flex items-center text-gray-600 hover:text-[#1C2B4B] transition-colors"
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 4, position: "relative" }}
+                className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors"
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, position: "relative" }}
               >
                 <div className="relative">
-                  <svg width={26} height={26} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                  <svg width={22} height={22} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
                   </svg>
                   <span
                     className="absolute -top-2 -right-2 text-white flex items-center justify-center rounded-full font-bold"
-                    style={{ background: SECONDARY, width: 18, height: 18, fontSize: 11, lineHeight: "18px" }}
+                    style={{ background: SECONDARY, width: 16, height: 16, fontSize: 10, lineHeight: "16px" }}
                   >{totalItems}</span>
                 </div>
+                <span style={{ fontSize: 10, whiteSpace: "nowrap" }}>৳{totalPrice.toLocaleString("en-US")}</span>
               </button>
 
               {/* Cart dropdown */}
@@ -241,6 +254,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
                   </div>
                 </div>
               )}
+            </div>
             </div>
           </div>
 
@@ -372,17 +386,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
               <span style={{ fontSize: 11 }}>Track Order</span>
             </Link>
 
-            {isLoggedIn ? (
-              <button onClick={customerLogout} className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" /></svg>
-                <span style={{ fontSize: 11 }}>Logout</span>
-              </button>
-            ) : (
-              <Link href="/login" className="hidden sm:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
-                <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                <span style={{ fontSize: 11 }}>Login</span>
-              </Link>
-            )}
+            <AccountMenu />
 
             {/* Cart with hover dropdown */}
             <div ref={cartRef} className="relative" onMouseEnter={() => setCartOpen(true)} onMouseLeave={() => setCartOpen(false)}>

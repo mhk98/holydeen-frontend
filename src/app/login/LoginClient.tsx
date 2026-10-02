@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/api";
-import { useCustomer } from "@/context/CustomerContext";
+import { useCustomer, type CustomerInfo } from "@/context/CustomerContext";
 
 const PRIMARY = "#1C2B4B";
 const SECONDARY = "#C39A2B";
@@ -15,7 +15,7 @@ type Mode = "login" | "register";
 
 interface LoginResult {
   token: string;
-  customer: { Id: number; name: string; phone: string };
+  customer: CustomerInfo;
 }
 
 export default function CustomerLoginPage({ header, footer }: SiteChromeSlots) {
