@@ -14,7 +14,7 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 
 export async function apiFetch<T>(
   path: string,
-  { params, signal: externalSignal, ...init }: FetchOptions = {},
+  { params, signal: externalSignal, headers, ...init }: FetchOptions = {},
   timeoutMs = DEFAULT_TIMEOUT_MS,
 ): Promise<T> {
   let urlStr = `${BASE}${path}`;
@@ -36,10 +36,12 @@ export async function apiFetch<T>(
   }
 
   try {
+    // `headers` is pulled out of init above so a caller's headers (e.g. Authorization)
+    // are merged with the JSON Content-Type instead of replacing it.
     const res = await fetch(urlStr, {
-      headers: { "Content-Type": "application/json", ...init.headers },
-      signal: controller.signal,
       ...init,
+      headers: { "Content-Type": "application/json", ...headers },
+      signal: controller.signal,
     });
 
     const json = await res.json();
