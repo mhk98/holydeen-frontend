@@ -72,7 +72,11 @@ export default function AccountPage({ header, footer }: SiteChromeSlots) {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
   const tab: Tab = TABS.includes(tabParam as Tab) ? (tabParam as Tab) : "orders";
-  const setTab = (t: Tab) => router.replace(`/account?tab=${t}`, { scroll: false });
+  const setTab = (t: Tab) => {
+    // Don't carry a previous tab's success/error banner over to the next visit.
+    setPfSuccess(""); setPfError(""); setPhotoError(""); setPwSuccess(""); setPwError("");
+    router.replace(`/account?tab=${t}`, { scroll: false });
+  };
 
   // Profile edit form
   const [profile,     setProfile]     = useState<Profile | null>(null);
@@ -244,6 +248,7 @@ export default function AccountPage({ header, footer }: SiteChromeSlots) {
       setPwSuccess("পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে!");
       setOldPw(""); setNewPw(""); setConfirmPw("");
     } catch (err) {
+      if (isAuthError(err)) { handleSessionExpired(); return; }
       setPwError(err instanceof Error ? err.message : "পাসওয়ার্ড পরিবর্তন হয়নি");
     } finally {
       setPwLoading(false);
