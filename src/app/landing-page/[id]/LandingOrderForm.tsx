@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
 import { createOrder, saveIncompleteOrder } from "@/services/orderService";
 import { getPixelClickData, trackPixelEvent, type PixelUserData } from "@/lib/pixel";
@@ -96,6 +97,7 @@ export default function LandingOrderForm({
   const [draftId, setDraftId] = useState<number | undefined>();
   const [deviceId, setDeviceId] = useState("");
   const checkout = useCheckoutSession();
+  const router = useRouter();
   const addToCartTrackedRef = useRef(false);
   const beginCheckoutTrackedRef = useRef(false);
   const leadTrackedOrderIdRef = useRef<number | undefined>(undefined);
@@ -327,12 +329,24 @@ export default function LandingOrderForm({
     try {
       const order = await createOrder(buildPayload("pending", normalizedPhone));
       trackLandingEvent("Purchase", total, order.Id, pixelUser);
-      setSuccess(
-        `${labels.successMessage} Order ID: ${order.orderId || order.Id}`,
+      // invoiceId is the display number (HD-xxxx); orderId is the raw stored value.
+      const invoiceId = order.invoiceId || order.orderId || String(order.Id);
+      // Same hand-off as the cart checkout, so /order-success and re-confirm work alike.
+      window.localStorage.setItem(
+        "kafela_pending_reconfirm_order",
+        JSON.stringify({
+          orderId: order.Id,
+          invoiceId,
+          phone: normalizedPhone,
+          name: customer.name.trim(),
+          total,
+        }),
       );
+      setSuccess(`${labels.successMessage} Order ID: ${invoiceId}`);
       setCustomer({ name: "", phone: "", address: "", note: "" });
       setDraftId(undefined);
       checkout.complete();
+      router.push(`/order-success?invoiceId=${encodeURIComponent(invoiceId)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Order create failed.");
     } finally {
