@@ -10,6 +10,10 @@ import {
   LandingProductOption,
 } from "@/services/landingPageService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
+import {
+  DEFAULT_DHAKA_CHARGE,
+  DEFAULT_OUTSIDE_DHAKA_CHARGE,
+} from "@/services/shippingChargeService";
 import LandingOrderForm, { LandingOrderOption } from "./LandingOrderForm";
 
 type PageProps = {
@@ -146,8 +150,15 @@ export default async function LandingPage({ params }: PageProps) {
     regularData.orderTitle ||
       "অর্ডার করতে আপনার সঠিক তথ্য দিয়ে নিচের ফর্মটি সম্পূর্ণ পূরণ করুন।",
   );
-  const deliveryInside = toNumber(regularData.deliveryInside, 70);
-  const deliveryOutside = toNumber(regularData.deliveryOutside, 130);
+  // Never below the site-wide minimum the order API charges.
+  const deliveryInside = Math.max(
+    toNumber(regularData.deliveryInside, 0),
+    DEFAULT_DHAKA_CHARGE,
+  );
+  const deliveryOutside = Math.max(
+    toNumber(regularData.deliveryOutside, 0),
+    DEFAULT_OUTSIDE_DHAKA_CHARGE,
+  );
   const headingItems = buildHeadingItems(regularData.headings);
   const featureSectionTitle = String(regularData.featureSectionTitle || "");
   const featureImages = buildFeatureImages(

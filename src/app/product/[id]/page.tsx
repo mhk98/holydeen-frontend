@@ -11,7 +11,7 @@ import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 import { fetchNavItems } from "@/services/menuService";
 import {
   fetchDeliveryCharges,
-  getDeliveryChargeText,
+  getDeliveryChargeLines,
 } from "@/services/shippingChargeService";
 
 // Render each product on its first visit, then serve it from the cache and
@@ -120,21 +120,11 @@ export default async function ProductDetailPage({
                     </span>
                     <div>
                       <p className="delivery-title">Regular Delivery Charge</p>
-                      {deliveryCharges.length > 0 ? (
-                        deliveryCharges.map((charge) => {
-                          const text = getDeliveryChargeText(charge);
-                          if (!text) return null;
-                          return (
-                            <p key={charge.Id} className="delivery-copy">
-                              • {text}
-                            </p>
-                          );
-                        })
-                      ) : (
-                        <p className="delivery-copy">
-                          • ঢাকার ভিতরে ৮০ টাকা • ঢাকার বাইরে ১২০ টাকা
+                      {getDeliveryChargeLines(deliveryCharges).map((text) => (
+                        <p key={text} className="delivery-copy">
+                          • {text}
                         </p>
-                      )}
+                      ))}
                     </div>
                   </div>
                   {/* COD */}

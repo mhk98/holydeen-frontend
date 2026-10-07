@@ -7,8 +7,9 @@ export interface ShippingCharge {
   date?: string | null;
 }
 
-const DEFAULT_DHAKA_CHARGE = 70;
-const DEFAULT_OUTSIDE_DHAKA_CHARGE = 130;
+// Also the minimum, matching the order API: lower configured charges are raised to these.
+export const DEFAULT_DHAKA_CHARGE = 80;
+export const DEFAULT_OUTSIDE_DHAKA_CHARGE = 130;
 
 const toAmount = (value: ShippingCharge["amount"]): number | null => {
   const amount = Number(value);
@@ -42,25 +43,24 @@ export function getDeliveryChargeForDistrict(
   if (!district) return 0;
 
   const isDhaka = district.toLowerCase() === "dhaka";
+  const minimum = isDhaka ? DEFAULT_DHAKA_CHARGE : DEFAULT_OUTSIDE_DHAKA_CHARGE;
   const matcher = isDhaka ? hasInsideDhakaText : hasOutsideDhakaText;
   const matched = charges.find((charge) => matcher(String(charge.note || "")));
   const matchedAmount = matched ? toAmount(matched.amount) : null;
-  if (matchedAmount !== null) return matchedAmount;
+  if (matchedAmount !== null) return Math.max(matchedAmount, minimum);
 
   const fallback = charges[isDhaka ? 0 : 1];
   const fallbackAmount = fallback ? toAmount(fallback.amount) : null;
-  if (fallbackAmount !== null) return fallbackAmount;
+  if (fallbackAmount !== null) return Math.max(fallbackAmount, minimum);
 
-  return isDhaka ? DEFAULT_DHAKA_CHARGE : DEFAULT_OUTSIDE_DHAKA_CHARGE;
+  return minimum;
 }
 
-export function getDeliveryChargeText(charge: ShippingCharge): string {
-  const note = String(charge.note || "").trim();
-  const amount = toAmount(charge.amount);
-  const noteHasAmount = /[0-9০-৯]/.test(note);
-  if (note && amount !== null && !noteHasAmount) {
-    return `${note} - ৳${amount.toLocaleString("en-US")}`;
-  }
-  if (note) return note;
-  return amount !== null ? `ডেলিভারি চার্জ ৳${amount.toLocaleString("en-US")}` : "";
+// Built from the charged amounts so the text never shows a rate below the minimum.
+export function getDeliveryChargeLines(charges: ShippingCharge[]): string[] {
+  const taka = (amount: number) => amount.toLocaleString("bn-BD");
+  return [
+    `ঢাকার ভিতরে ${taka(getDeliveryChargeForDistrict(charges, "dhaka"))} টাকা`,
+    `ঢাকার বাইরে ${taka(getDeliveryChargeForDistrict(charges, "outside"))} টাকা`,
+  ];
 }
