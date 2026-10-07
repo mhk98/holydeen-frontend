@@ -66,6 +66,10 @@ function buildProductOptions(
   image: string,
 ): LandingOrderOption[] {
   const regularData = parseObject(page.regularData);
+  // Same linked product the server uses to decide free shipping.
+  const freeShippingIds = new Set(page.freeShippingProductIds || []);
+  const isFreeShipping = (linkedId: unknown) =>
+    freeShippingIds.has(Number(linkedId || page.productId || 0));
   const configured = Array.isArray(regularData.productOptions)
     ? (regularData.productOptions as LandingProductOption[])
     : [];
@@ -82,6 +86,7 @@ function buildProductOptions(
         toNumber(page.originalPrice, 2500),
       ),
       image: toImageUrl(String(item.image || page.bannerImageUrl || image)),
+      freeShipping: isFreeShipping(item.productId),
     }))
     .filter((item) => item.name && item.price > 0);
 
@@ -95,6 +100,7 @@ function buildProductOptions(
       price: toNumber(page.price, 0),
       originalPrice: toNumber(page.originalPrice, 0),
       image: toImageUrl(image),
+      freeShipping: isFreeShipping(page.productId),
     },
   ];
 }

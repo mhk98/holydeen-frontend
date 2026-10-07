@@ -33,6 +33,7 @@ export interface LandingPageData {
   countdown?: string | null;
   regularData?: Record<string, unknown> | string | null;
   status?: boolean;
+  freeShippingProductIds?: number[];
 }
 
 export async function fetchLandingPage(id: string | number): Promise<LandingPageData | null> {
