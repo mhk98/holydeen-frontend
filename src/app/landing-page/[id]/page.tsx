@@ -141,8 +141,11 @@ export default async function LandingPage({ params }: PageProps) {
     page.phone || header?.supportPhone || settings.phone || "",
   ).trim();
   const whyLines = textLines(page.whyChooseUs || "");
+  // Admin form: "Problem Section Text" saves to shortDescription ("Size Section Text" is
+  // description). The problem section shows its own field; description is only a fallback
+  // for older pages that never filled shortDescription.
   const descriptionLines = textLines(
-    page.description || page.shortDescription || "",
+    page.shortDescription || page.description || "",
   );
   const videoEmbedUrl = getVideoEmbedUrl(page.video);
   const ctaText = String(regularData.ctaText || "অর্ডার করতে ক্লিক করুন");
@@ -322,9 +325,10 @@ export default async function LandingPage({ params }: PageProps) {
                   {page.descriptionTitle}
                 </h2>
               ) : null}
-              <Paragraphs
+              <ChecklistParagraphs
                 lines={descriptionLines}
                 color={colors.fontColor}
+                headingColor={colors.headingColor}
                 className="mx-auto mt-6 max-w-4xl"
               />
               {videoEmbedUrl ? (
@@ -399,9 +403,10 @@ export default async function LandingPage({ params }: PageProps) {
                   {page.whyChooseTitle}
                 </h2>
               ) : null}
-              <Paragraphs
+              <ChecklistParagraphs
                 lines={whyLines}
                 color={colors.fontColor}
+                headingColor={colors.headingColor}
                 className="mx-auto mt-6 max-w-4xl font-semibold"
               />
               {phone ? (
@@ -558,24 +563,73 @@ function TopStrip({
   );
 }
 
-function Paragraphs({
+// A leading check mark or any emoji (✅ ✔ 🛒 ⭐ 🚚 …), with an optional variation selector.
+const CHECK_MARK_PATTERN = /^(\p{Extended_Pictographic}️?)\s*/u;
+
+// A short plain line right above a list (e.g. "Premium Attar Combo") is that list's title.
+const MAX_LIST_TITLE_LENGTH = 60;
+
+// Groups consecutive check-mark/emoji lines into a left-aligned list so the
+// marks stack in one column, while other lines stay centered.
+function ChecklistParagraphs({
   lines,
   color,
+  headingColor,
   className = "mt-8",
 }: {
   lines: string[];
   color?: string;
+  headingColor?: string;
   className?: string;
 }) {
   if (!lines.length) return null;
+
+  const groups: { checks: boolean; lines: string[] }[] = [];
+  for (const line of lines) {
+    const checks = CHECK_MARK_PATTERN.test(line);
+    const last = groups[groups.length - 1];
+    if (last && last.checks === checks) last.lines.push(line);
+    else groups.push({ checks, lines: [line] });
+  }
+
   return (
     <div
       className={`space-y-3 text-base leading-8 ${className}`}
       style={{ color }}
     >
-      {lines.map((line) => (
-        <p key={line}>{line}</p>
-      ))}
+      {groups.map((group, index) =>
+        group.checks ? (
+          <ul key={index} className="mx-auto w-fit space-y-3 text-left">
+            {group.lines.map((line) => {
+              const mark = line.match(CHECK_MARK_PATTERN)?.[1] ?? "";
+              return (
+                <li key={line} className="flex items-start gap-2">
+                  <span className="shrink-0">{mark}</span>
+                  <span>{line.replace(CHECK_MARK_PATTERN, "")}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          group.lines.map((line, lineIndex) => {
+            const isListTitle =
+              lineIndex === group.lines.length - 1 &&
+              groups[index + 1]?.checks &&
+              line.length <= MAX_LIST_TITLE_LENGTH;
+            return isListTitle ? (
+              <h3
+                key={line}
+                className="pt-2 text-xl font-bold leading-snug md:text-2xl"
+                style={{ color: headingColor || color }}
+              >
+                {line}
+              </h3>
+            ) : (
+              <p key={line}>{line}</p>
+            );
+          })
+        ),
+      )}
     </div>
   );
 }
