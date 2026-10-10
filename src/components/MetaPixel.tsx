@@ -22,9 +22,16 @@ function appendScript(id: string, src: string) {
 function initMeta(pixelIds: string[]) {
   if (!pixelIds.length) return;
   if (typeof window.fbq !== "function") {
-    window.fbq = function (...args: unknown[]) {
-      window.fbq.queue?.push(args);
-    } as typeof window.fbq;
+    // Same as Meta's official stub: once fbevents.js loads it sets callMethod, and
+    // every later call (AddToCart, Purchase, ...) must go through it, not the queue.
+    const fbq = function (...args: unknown[]) {
+      if (fbq.callMethod) fbq.callMethod(...args);
+      else fbq.queue?.push(args);
+    } as Window["fbq"] & { disablePushState?: boolean };
+    // PageView is tracked manually on route change (with an eventID for dedup);
+    // stop the pixel from sending its own extra PageView on history changes.
+    fbq.disablePushState = true;
+    window.fbq = fbq;
     window.fbq.queue = [];
     window.fbq.loaded = true;
     window.fbq.version = "2.0";
