@@ -94,6 +94,11 @@ export interface CreateOrderPayload {
   advance?: number;
   total: number;
   tracking?: Record<string, unknown>;
+  landingTracking?: {
+    enabled: boolean;
+    eventSourceUrl: string;
+    customData: Record<string, unknown>;
+  };
 }
 
 export interface ApiAccountInfo {
@@ -102,6 +107,9 @@ export interface ApiAccountInfo {
 }
 
 export interface ApiOrder {
+  purchaseEventId?: string;
+  purchaseValue?: number;
+  purchaseCurrency?: string;
   Id: number;
   orderId?: string;
   invoiceId?: string;

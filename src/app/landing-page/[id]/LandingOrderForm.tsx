@@ -328,7 +328,12 @@ export default function LandingOrderForm({
     trackLandingEvent("AddPaymentInfo", total, undefined, pixelUser);
     try {
       const order = await createOrder(buildPayload("pending", normalizedPhone));
-      trackLandingEvent("Purchase", total, order.Id, pixelUser);
+      trackPixelEvent("Purchase", {
+        ...pixelData,
+        value: order.purchaseValue ?? order.total,
+        currency: order.purchaseCurrency || "BDT",
+        order_id: order.orderId || order.Id,
+      }, pixelUser, { eventId: order.purchaseEventId, server: !order.purchaseEventId });
       // invoiceId is the display number (HD-xxxx); orderId is the raw stored value.
       const invoiceId = order.invoiceId || order.orderId || String(order.Id);
       // Same hand-off as the cart checkout, so /order-success and re-confirm work alike.

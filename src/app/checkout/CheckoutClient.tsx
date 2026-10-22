@@ -311,8 +311,11 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
       );
       trackPixelEvent(
         "Purchase",
-        { ...orderPixelData, content_name: "Order Confirmed", order_id: order.Id },
+        { ...orderPixelData, content_name: "Order Confirmed", order_id: order.orderId || order.Id,
+          value: order.purchaseValue ?? order.total,
+          currency: order.purchaseCurrency || "BDT" },
         orderPixelUser,
+        { eventId: order.purchaseEventId, server: !order.purchaseEventId },
       );
       window.localStorage.setItem(
         "kafela_pending_reconfirm_order",

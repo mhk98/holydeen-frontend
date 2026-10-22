@@ -136,17 +136,18 @@ function sendServerEvent(
 export function trackPixelEvent(
   eventName: string,
   data: PixelProductData,
-  userData?: PixelUserData
+  userData?: PixelUserData,
+  options: { eventId?: string; server?: boolean } = {},
 ) {
   if (typeof window === "undefined") return;
 
-  const id = eventId(eventName, eventName === "Purchase" ? data.order_id : undefined);
+  const id = options.eventId || eventId(eventName, eventName === "Purchase" ? data.order_id : undefined);
   // Name/phone go only to the server (hashed there) — Meta flags raw PII in browser custom data.
   const payload: Record<string, unknown> = { ...data };
   if (userData?.customerId) payload.customer_id = userData.customerId;
 
   runWhenPixelsReady(() => sendBrowserEvent(eventName, id, data, payload));
-  sendServerEvent(eventName, id, data, userData);
+  if (options.server !== false) sendServerEvent(eventName, id, data, userData);
 }
 
 function sendBrowserEvent(
