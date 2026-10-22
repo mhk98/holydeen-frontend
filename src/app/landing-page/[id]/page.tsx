@@ -64,7 +64,6 @@ function toImageUrl(file?: string | null) {
   return `${IMAGES}/${value.replace(/^images\//, "")}`;
 }
 
-
 function buildProductOptions(
   page: LandingPageData,
   image: string,
@@ -84,11 +83,19 @@ function buildProductOptions(
       name: String(
         item.name || page.product || page.title || "Landing Product",
       ),
-      price: toNumber(item.price, toNumber(page.price, 1899)),
+      // price: toNumber(item.price, toNumber(page.price, 1899)),
+      // originalPrice: toNumber(
+      //   item.originalPrice,
+      //   toNumber(page.originalPrice, 2500),
+      // ),
+
+      price: toNumber(item.price, toNumber(page.price, 0)),
+
       originalPrice: toNumber(
         item.originalPrice,
-        toNumber(page.originalPrice, 2500),
+        toNumber(page.originalPrice, 0),
       ),
+
       image: toImageUrl(String(item.image || page.bannerImageUrl || image)),
       freeShipping: isFreeShipping(item.productId),
     }))
@@ -182,10 +189,10 @@ export default async function LandingPage({ params }: PageProps) {
     toNumber(productOptions[0]?.originalPrice, 0);
   const hasReviewSection = Boolean(
     reviewHeading ||
-      reviewSubHeading ||
-      reviewRegularPriceLabel ||
-      reviewOfferPriceLabel ||
-      reviewButtonText,
+    reviewSubHeading ||
+    reviewRegularPriceLabel ||
+    reviewOfferPriceLabel ||
+    reviewButtonText,
   );
   const buttonStyle = {
     backgroundColor: colors.buttonColor,
