@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import Image from "@/components/AppImage";
 import Container from "./Container";
 import type { BrandItem } from "@/services/brandService";
 

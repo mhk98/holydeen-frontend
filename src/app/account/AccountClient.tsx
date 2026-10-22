@@ -2,7 +2,7 @@
 
 import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
+import Image from "@/components/AppImage";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import MarqueeBanner from "@/components/MarqueeBanner";

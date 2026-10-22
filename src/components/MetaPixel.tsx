@@ -104,7 +104,8 @@ export default function MetaPixel() {
   const pathname = usePathname();
 
   useEffect(() => {
-    fetch(`${BASE}/tracking/config`, { cache: "no-store" })
+    // Backend sends Cache-Control: max-age=300, so repeat page loads reuse it.
+    fetch(`${BASE}/tracking/config`)
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
         const config = (json?.data || {}) as TrackingConfig;

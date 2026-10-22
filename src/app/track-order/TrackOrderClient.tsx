@@ -2,7 +2,7 @@
 
 import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import Image from "@/components/AppImage";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/api";

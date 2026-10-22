@@ -20,20 +20,47 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
-  async rewrites() {
+  async redirects() {
     return [
+      // Old landing-page links: /?landingPageId=12 -> /landing-page/12
       {
-        source: "/api/v1/:path*",
-        destination: `${API_URL}/api/v1/:path*`,
-      },
-      {
-        source: "/images/:path*",
-        destination: `${API_URL}/images/:path*`,
+        source: "/",
+        has: [{ type: "query", key: "landingPageId", value: "(?<landingPageId>.+)" }],
+        destination: "/landing-page/:landingPageId",
+        permanent: false,
       },
     ];
   },
+  async rewrites() {
+    return {
+      // Category links stay /?menu=...; serve them from the dynamic /category
+      // page so the plain home page can be statically cached (ISR).
+      beforeFiles: [
+        {
+          source: "/",
+          has: [{ type: "query", key: "menu" }],
+          destination: "/category",
+        },
+      ],
+      afterFiles: [
+        {
+          source: "/api/v1/:path*",
+          destination: `${API_URL}/api/v1/:path*`,
+        },
+        {
+          source: "/images/:path*",
+          destination: `${API_URL}/images/:path*`,
+        },
+      ],
+      fallback: [],
+    };
+  },
 
   images: {
+    // Cache resized images for 30 days instead of 4 hours, so each image/size
+    // is optimized on this server about once a month (Cloudinary images skip
+    // the optimizer entirely, see src/components/AppImage.tsx).
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       {
         protocol: "https",

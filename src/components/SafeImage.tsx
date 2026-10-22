@@ -1,5 +1,6 @@
 "use client";
-import Image, { type ImageProps } from "next/image";
+import { type ImageProps } from "next/image";
+import Image from "@/components/AppImage";
 import { useState } from "react";
 
 type SafeImageProps = Omit<ImageProps, "src" | "alt" | "onError"> & {
