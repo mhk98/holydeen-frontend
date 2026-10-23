@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { BASE } from "@/lib/api";
-import { markPixelsReady, trackPageView, getOrInitFbc, getOrInitFbp } from "@/lib/pixel";
+import { markPixelsReady, trackPageView, getOrInitFbc, getOrInitFbp, initMetaPixels } from "@/lib/pixel";
 
 interface TrackingConfig {
   metaPixels?: { pixelsId: string }[];
@@ -17,29 +17,6 @@ function appendScript(id: string, src: string) {
   script.async = true;
   script.src = src;
   document.head.appendChild(script);
-}
-
-function getStoredCustomerMatching() {
-  if (typeof window === "undefined") return undefined;
-  try {
-    const raw = localStorage.getItem("customer_info");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && (parsed.phone || parsed.name)) {
-        const phone = String(parsed.phone || "").replace(/\D/g, "");
-        const normPhone = phone.startsWith("88") ? phone : phone ? `88${phone}` : undefined;
-        const nameParts = String(parsed.name || "").trim().split(/\s+/).filter(Boolean);
-        return {
-          ph: normPhone,
-          fn: parsed.firstName || nameParts[0] || undefined,
-          ln: parsed.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined),
-          country: "bd",
-          external_id: parsed.Id ? String(parsed.Id) : undefined,
-        };
-      }
-    }
-  } catch {}
-  return undefined;
 }
 
 function initMeta(pixelIds: string[]) {
@@ -57,14 +34,7 @@ function initMeta(pixelIds: string[]) {
     window._fbq = window.fbq;
     appendScript("meta-pixel-sdk", "https://connect.facebook.net/en_US/fbevents.js");
   }
-  const matchingData = getStoredCustomerMatching();
-  pixelIds.forEach((id) => {
-    if (matchingData) {
-      window.fbq("init", id, matchingData);
-    } else {
-      window.fbq("init", id);
-    }
-  });
+  initMetaPixels(pixelIds);
 }
 
 function initTiktok(pixelCodes: string[]) {

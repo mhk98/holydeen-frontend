@@ -247,8 +247,110 @@ if (typeof window !== "undefined") {
   if (wbraid) setStorage("wbraid", wbraid);
 }
 
+// Same key the checkout uses, so every event carries one stable external_id per browser
+const DEVICE_ID_KEY = "kafela_device_id";
+const TRACKING_USER_KEY = "holydeen_tracking_user";
+
+export function getTrackingDeviceId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_KEY);
+    if (existing) return existing;
+    const generated =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    localStorage.setItem(DEVICE_ID_KEY, generated);
+    return generated;
+  } catch {
+    return "";
+  }
+}
+
+const REMEMBERED_FIELDS = ["name", "firstName", "lastName", "phone", "email", "address", "district", "city", "zip", "customerId"] as const;
+
+// Customer details typed once (lead form, checkout, login) are reused on later
+// ViewContent/AddToCart events so those also match beyond IP + user agent.
+function rememberUserData(userData?: PixelUserData) {
+  if (typeof window === "undefined" || !userData?.phone) return;
+  const known = getKnownUserData();
+  REMEMBERED_FIELDS.forEach((field) => {
+    const value = userData[field];
+    if (value !== undefined && value !== null && value !== "") (known as Record<string, unknown>)[field] = value;
+  });
+  try {
+    localStorage.setItem(TRACKING_USER_KEY, JSON.stringify(known));
+  } catch {}
+}
+
+function getKnownUserData(): PixelUserData {
+  if (typeof window === "undefined") return {};
+  const known: PixelUserData = {};
+  try {
+    const customer = JSON.parse(localStorage.getItem("customer_info") || "null");
+    if (customer) {
+      Object.assign(known, {
+        name: customer.name || undefined,
+        firstName: customer.firstName || undefined,
+        lastName: customer.lastName || undefined,
+        phone: customer.phone || undefined,
+        customerId: customer.Id || undefined,
+      });
+    }
+    Object.assign(known, JSON.parse(localStorage.getItem(TRACKING_USER_KEY) || "{}"));
+  } catch {}
+  return Object.fromEntries(Object.entries(known).filter(([, v]) => v !== undefined && v !== "")) as PixelUserData;
+}
+
+function cleanGeo(value?: string) {
+  return String(value || "").toLowerCase().replace(/[^a-z]/g, "");
+}
+
+// Manual advanced matching payload; the pixel normalises and hashes these itself.
+function buildAdvancedMatching(userData: PixelUserData): Record<string, string> {
+  const split = parseName(userData.name);
+  const firstName = String(userData.firstName || split.firstName || "").toLowerCase();
+  const lastName = String(userData.lastName || split.lastName || "").toLowerCase();
+  const district = String(userData.district || "").toLowerCase();
+  const city = cleanGeo(userData.city || (district === "inside" ? "dhaka" : district === "outside" ? "" : district));
+  const email = String(userData.email || "").trim().toLowerCase();
+  const matching: Record<string, string | undefined> = {
+    ph: normalizeBangladeshPhone(userData.phone) || undefined,
+    em: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : undefined,
+    fn: firstName || undefined,
+    ln: lastName || undefined,
+    ct: city || undefined,
+    st: city === "dhaka" ? "dhaka" : undefined,
+    zp: /^\d{4}$/.test(String(userData.zip || "")) ? String(userData.zip) : undefined,
+    country: "bd",
+    external_id: getTrackingDeviceId() || undefined,
+  };
+  return Object.fromEntries(Object.entries(matching).filter(([, v]) => v)) as Record<string, string>;
+}
+
+let metaPixelIds: string[] = [];
+let lastMatchingKey = "";
+
+export function initMetaPixels(pixelIds: string[]) {
+  metaPixelIds = pixelIds;
+  const matching = buildAdvancedMatching(getKnownUserData());
+  lastMatchingKey = JSON.stringify(matching);
+  pixelIds.forEach((id) => window.fbq("init", id, matching));
+}
+
+// Re-running init with the same pixel id is how Meta updates advanced matching after load.
+function updateAdvancedMatching() {
+  if (typeof window.fbq !== "function" || !metaPixelIds.length) return;
+  const matching = buildAdvancedMatching(getKnownUserData());
+  const key = JSON.stringify(matching);
+  if (key === lastMatchingKey) return;
+  lastMatchingKey = key;
+  metaPixelIds.forEach((id) => window.fbq("init", id, matching));
+}
+
 export function getPixelClickData() {
   return {
+    deviceId: getTrackingDeviceId() || undefined,
     fbp: getOrInitFbp(),
     fbc: getOrInitFbc(),
     ttp: getCookie("_ttp") || getStorage("_ttp") || undefined,
@@ -285,6 +387,7 @@ function sendServerEvent(
 ) {
   const clickData = getPixelClickData();
   const payloadUserData = {
+    ...getKnownUserData(),
     ...clickData,
     ...userData,
     country: userData?.country || "bd",
@@ -326,8 +429,9 @@ export function trackPixelEvent(
   const id = eventId(eventName, eventName === "Purchase" ? data.order_id : undefined);
   const payload: Record<string, unknown> = { ...data };
   if (userData?.customerId) payload.customer_id = userData.customerId;
+  rememberUserData(userData);
 
-  runWhenPixelsReady(() => sendBrowserEvent(eventName, id, data, payload, userData));
+  runWhenPixelsReady(() => sendBrowserEvent(eventName, id, data, payload));
   sendServerEvent(eventName, id, data, userData);
 }
 
@@ -336,25 +440,9 @@ function sendBrowserEvent(
   id: string,
   data: PixelProductData,
   payload: Record<string, unknown>,
-  userData?: PixelUserData,
 ) {
   if (typeof window.fbq === "function") {
-    // Advanced matching in browser
-    if (userData?.phone || userData?.name) {
-      const { firstName, lastName } = parseName(userData.name);
-      const phone = normalizeBangladeshPhone(userData.phone);
-      const city = userData.city || (userData.district === "inside" ? "Dhaka" : userData.district);
-
-      window.fbq("setUserProperties", undefined, {
-        ph: phone || undefined,
-        fn: firstName || undefined,
-        ln: lastName || undefined,
-        ct: city || undefined,
-        country: "bd",
-        external_id: userData.customerId ? String(userData.customerId) : undefined,
-      });
-    }
-
+    updateAdvancedMatching();
     const method = STANDARD_EVENTS.has(eventName) ? "track" : "trackCustom";
     window.fbq(method, eventName, payload, { eventID: id });
   }
