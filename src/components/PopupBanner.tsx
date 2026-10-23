@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import type { BannerItem } from "@/services/bannerService";
 
 interface Props {

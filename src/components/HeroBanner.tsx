@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import Container from "./Container";
 import type { BannerItem } from "@/services/bannerService";
 

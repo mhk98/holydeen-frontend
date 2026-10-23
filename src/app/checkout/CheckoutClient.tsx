@@ -93,7 +93,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
       id: "cod" as const,
       label: "Cash on Delivery",
       number: null,
-      bg: "#C39A2B",
+      bg: "#0B1B4F",
     },
     {
       id: "bkash" as const,
@@ -311,11 +311,8 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
       );
       trackPixelEvent(
         "Purchase",
-        { ...orderPixelData, content_name: "Order Confirmed", order_id: order.orderId || order.Id,
-          value: order.purchaseValue ?? order.total,
-          currency: order.purchaseCurrency || "BDT" },
+        { ...orderPixelData, content_name: "Order Confirmed", order_id: order.Id },
         orderPixelUser,
-        { eventId: order.purchaseEventId, server: !order.purchaseEventId },
       );
       window.localStorage.setItem(
         "kafela_pending_reconfirm_order",
@@ -384,7 +381,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "#F8F6F0",
+        background: "#F5F5F5",
       }}
     >
       {header}
@@ -402,7 +399,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
               }}
             >
               {/* Brand header */}
-              <div style={{ background: "#C39A2B", padding: "18px 28px" }}>
+              <div style={{ background: "#0B1B4F", padding: "18px 28px" }}>
                 <p
                   style={{
                     color: "#fff",
@@ -668,7 +665,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                       style={{
                         margin: "6px 0 0",
                         fontSize: 13,
-                        color: "#C39A2B",
+                        color: "#0B1B4F",
                         fontWeight: 500,
                       }}
                     >
@@ -787,7 +784,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                   onClick={handleConfirm}
                   disabled={loading}
                   style={{
-                    background: loading ? "#aaa" : "#1C2B4B",
+                    background: loading ? "#aaa" : "#0B1B4F",
                     color: "#fff",
                     border: "none",
                     borderRadius: 8,
@@ -1145,7 +1142,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                     onClick={handleApplyCoupon}
                     disabled={couponLoading}
                     style={{
-                      background: couponLoading ? "#9ca3af" : "#C39A2B",
+                      background: couponLoading ? "#9ca3af" : "#C59B27",
                       color: "#fff",
                       border: "none",
                       borderRadius: 8,

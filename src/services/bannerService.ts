@@ -3,7 +3,7 @@ import { BASE, IMAGES } from "@/lib/api";
 export interface BannerItem {
   Id: number;
   file: string;
-  type: "slider" | "side" | "popup" | "custom";
+  type: "slider" | "side" | "popup" | "scratch_card" | "scratch_card_mobile" | "custom";
   category?: string;
   linkUrl: string | null;
   alt: string;
@@ -19,6 +19,23 @@ export interface BannersResult {
 function toUrl(file: string): string {
   if (file.startsWith("http")) return file;
   return `${IMAGES}/${file}`;
+}
+
+/**
+ * Banners from the admin "Scratch Card" banner categories, shown on the scratch
+ * card pages: `scratch_card` for all screens, optional `scratch_card_mobile` for phones.
+ */
+export async function fetchScratchCardBanners(): Promise<BannerItem[]> {
+  try {
+    const res = await fetch(`${BASE}/banners/public`, { next: { revalidate: 60 }, signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return (json.data || [])
+      .filter((b: BannerItem) => b.type === "scratch_card" || b.type === "scratch_card_mobile")
+      .map((b: BannerItem) => ({ ...b, file: toUrl(b.file) }));
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchBanners(): Promise<BannersResult> {

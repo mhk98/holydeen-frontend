@@ -2,7 +2,7 @@
 
 import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useState, useEffect, useCallback } from "react";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import MarqueeBanner from "@/components/MarqueeBanner";
@@ -11,8 +11,8 @@ import { ApiResponse } from "@/types/api";
 import { useCustomer } from "@/context/CustomerContext";
 import CustomerAvatar from "@/components/CustomerAvatar";
 
-const PRIMARY = "#1C2B4B";
-const SECONDARY = "#C39A2B";
+const PRIMARY = "#0B1B4F";
+const SECONDARY = "#C59B27";
 
 interface OrderItem { name: string; image?: string; qty: number; price: number; variant?: string; size?: string; color?: string; }
 interface Order {
@@ -274,7 +274,7 @@ export default function AccountPage({ header, footer }: SiteChromeSlots) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F8F6F0" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#F5F5F5" }}>
       <MarqueeBanner />
       {header}
 

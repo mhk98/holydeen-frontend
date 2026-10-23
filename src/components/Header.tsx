@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
 import SafeImage from "@/components/SafeImage";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { NavItem, Product } from "@/data/products";
 import { fetchNavItems } from "@/services/menuService";
 import { fetchStorefrontProducts } from "@/services/productService";
@@ -10,10 +10,11 @@ import { fetchSiteSettings } from "@/services/settingService";
 import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
 import AccountMenu from "@/components/AccountMenu";
+import ScratchCardMenu from "@/components/ScratchCardMenu";
 import { trackPixelEvent } from "@/lib/pixel";
 
-const PRIMARY   = "#1C2B4B";   // logo navy
-const SECONDARY = "#C39A2B";   // logo gold
+const PRIMARY   = "#0B1B4F";   // Royal Navy Blue (Holy Deen)
+const SECONDARY = "#C59B27";   // Royal Gold (Holy Deen)
 
 interface HeaderProps {
   logoUrl?: string | null;
@@ -49,6 +50,9 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
   const searchSeqRef = useRef(0);
   const navRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+  // The scratch card claim and track pages are focused flows, so they hide product search.
+  const pathname = usePathname();
+  const showSearch = !pathname?.startsWith("/scratch-card");
   const activeMenu = searchParams.get("menu") || "";
   const activeSub  = searchParams.get("sub")  || "";
   const activeChild = searchParams.get("child") || "";
@@ -190,7 +194,9 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
             {/* Right icons: same three as desktop, with labels */}
             <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-            <Link href="/track-order" className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
+            <ScratchCardMenu compact />
+
+            <Link href="/track-order" className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#0B1B4F] transition-colors">
               <svg width={22} height={22} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <rect x="1" y="3" width="15" height="13" rx="1" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
@@ -203,7 +209,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
             <div ref={cartRef} className="relative" style={{ flexShrink: 0 }}>
               <button
                 onClick={() => setCartOpen((o) => !o)}
-                className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors"
+                className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#0B1B4F] transition-colors"
                 style={{ background: "none", border: "none", cursor: "pointer", padding: 0, position: "relative" }}
               >
                 <div className="relative">
@@ -259,7 +265,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
           </div>
 
           {/* Row 2: Search bar — full width */}
-          <div style={{ padding: "0 14px 10px", position: "relative" }} ref={mobileSearchRef}>
+          <div hidden={!showSearch} style={{ padding: "0 14px 10px", position: "relative" }} ref={mobileSearchRef}>
             <div style={{ display: "flex", alignItems: "center", height: 40, border: `2px solid ${PRIMARY}`, borderRadius: 50, overflow: "hidden" }}>
               <button
                 style={{ width: 44, height: "100%", background: "#f7f7f7", display: "flex", alignItems: "center", justifyContent: "center", border: "none", flexShrink: 0, cursor: "pointer" }}
@@ -324,8 +330,12 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
             </div>
           </Link>
 
-          {/* Search */}
-          <div style={{ padding: "0 11px", position: "relative" }} ref={searchRef}>
+          {/* Search (kept in the grid but invisible when hidden, so the icons stay on the right) */}
+          <div
+            aria-hidden={!showSearch}
+            style={{ padding: "0 11px", position: "relative", visibility: showSearch ? undefined : "hidden" }}
+            ref={searchRef}
+          >
             <div style={{ display: "flex", alignItems: "center", height: 44, border: `2px solid ${PRIMARY}`, borderRadius: 50, overflow: "hidden" }}>
               <button
                 style={{ width: "12%", height: "100%", background: "#f7f7f7", display: "flex", alignItems: "center", justifyContent: "center", border: "none", flexShrink: 0, cursor: "pointer" }}
@@ -379,7 +389,11 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
           {/* Right icons */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 20 }}>
-            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
+            <div className="hidden md:block">
+              <ScratchCardMenu />
+            </div>
+
+            <Link href="/track-order" className="hidden md:flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#0B1B4F] transition-colors">
               <svg width={24} height={24} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                 <rect x="1" y="3" width="15" height="13" rx="1" /><path d="M16 8h4l3 3v5h-7V8z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
               </svg>
@@ -390,7 +404,7 @@ function HeaderInner({ logoUrl, navItems: navItemsProp }: HeaderProps) {
 
             {/* Cart with hover dropdown */}
             <div ref={cartRef} className="relative" onMouseEnter={() => setCartOpen(true)} onMouseLeave={() => setCartOpen(false)}>
-              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#1C2B4B] transition-colors">
+              <button className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-[#0B1B4F] transition-colors">
                 <div className="relative">
                   <svg width={26} height={26} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                     <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />

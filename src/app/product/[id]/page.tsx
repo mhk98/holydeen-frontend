@@ -43,7 +43,10 @@ export default async function ProductDetailPage({
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
       <MarqueeBanner text={(settings as SiteSetting).marqueeText ?? null} />
-      <Header logoUrl={(settings as SiteSetting).logoUrl ?? null} navItems={navItems} />
+      <Header
+        logoUrl={(settings as SiteSetting).logoUrl ?? null}
+        navItems={navItems}
+      />
 
       <main className="flex-1 py-3">
         <Container>

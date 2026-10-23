@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+:root {
+  --primary: #0B1B4F;
+  --primary-hover: #071233;
+  --primary-dark: #050E29;
+  --primary-light: #EEF2F9;
+  --secondary: #C59B27;
+  --secondary-hover: #A87F18;
+  --gold: #C59B27;
+  --gold-soft: #FAF4E6;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,7 +24,7 @@
 }
 
 body {
-  background-color: #F8F6F0;
+  background-color: #F5F5F5;
   font-family: "Lato", Arial, Helvetica, sans-serif;
   font-size: 15px;
   color: #333;
@@ -363,9 +374,9 @@ body {
 }
 
 .track-order-input:focus {
-  border-color: #1C2B4B;
+  border-color: #0B1B4F;
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(28, 43, 75, 0.12);
+  box-shadow: 0 0 0 4px rgba(11, 27, 79, 0.15);
 }
 
 .track-order-button {
@@ -639,7 +650,7 @@ body {
   margin: 0 0 16px 22px;
 }
 .dynamic-page-content a {
-  color: #1C2B4B;
+  color: #0B1B4F;
   text-decoration: underline;
 }
 .dynamic-page-content .policy-intro {

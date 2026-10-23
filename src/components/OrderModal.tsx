@@ -53,7 +53,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
         <div
           className="flex items-center"
           style={{
-            background: "#1C2B4B", borderRadius: "8px 8px 0 0",
+            background: "#0B1B4F", borderRadius: "8px 8px 0 0", borderBottom: "2px solid #C59B27",
             height: 58, paddingLeft: 28, paddingRight: 28,
           }}
         >
@@ -130,7 +130,7 @@ export default function OrderModal({ product, onClose }: OrderModalProps) {
                   onClick={handleOrder}
                   disabled={!canBuy}
                   className="flex-1 text-white font-bold tracking-wide transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ background: "#1C2B4B", borderRadius: 4, height: 42, fontSize: 15 }}
+                  style={{ background: "#0B1B4F", borderRadius: 4, height: 42, fontSize: 15 }}
                 >
                   + ORDER NOW
                 </button>

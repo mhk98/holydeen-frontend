@@ -8,8 +8,8 @@ import { useCart } from "@/context/CartContext";
 import { useCustomer } from "@/context/CustomerContext";
 import { trackPixelEvent } from "@/lib/pixel";
 
-const PRIMARY   = "#1C2B4B";
-const SECONDARY = "#C39A2B";
+const PRIMARY   = "#0B1B4F";
+const SECONDARY = "#C59B27";
 const ACCENT    = "#D7262E";
 const formatPrice = (value: number) => value.toLocaleString("en-US");
 
@@ -94,7 +94,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <Link
           href={`/product/${product.id}`}
-          className="block overflow-hidden px-2 text-center font-medium text-[#222] transition-colors hover:text-[#1C2B4B]"
+          className="block overflow-hidden px-2 text-center font-medium text-[#222] transition-colors hover:text-[#0B1B4F]"
           style={{
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -112,7 +112,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <span className="text-gray-400 line-through" style={{ fontSize: 11 }}>
             ৳{formatPrice(product.originalPrice)}
           </span>
-          <span className="font-extrabold" style={{ color: SECONDARY, fontSize: 13 }}>
+          <span className="font-extrabold" style={{ color: PRIMARY, fontSize: 13 }}>
             {product.hasVariants && (product.priceMax ?? 0) > product.discountedPrice ? "From " : ""}
             ৳{formatPrice(product.discountedPrice)}
           </span>

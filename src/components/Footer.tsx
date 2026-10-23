@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import { fetchPublicPages, type WebsitePage } from "@/services/pageService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 
@@ -155,7 +155,7 @@ function FooterLink({
           lineHeight: "24px",
           display: "block",
         }}
-        className="hover:text-[#C39A2B] transition-colors"
+        className="hover:text-[#C59B27] transition-colors"
       >
         {children}
       </Link>
@@ -373,14 +373,14 @@ export default function Footer({ settings, pages: pagesProp }: Props) {
 
       {/* Copyright */}
       {copyright && (
-      <div className="bg-[#14203A] py-3.5 text-center">
+      <div className="bg-[#071233] py-3.5 text-center">
         <p style={{ fontSize: 13, color: "#aaa" }}>
           {copyrightMain}{" "}
           {copyrightBrand && (
             <a
               href="#"
               className="hover:underline"
-              style={{ color: "#C39A2B" }}
+              style={{ color: "#C59B27" }}
             >
               {copyrightBrand}
             </a>

@@ -83,19 +83,11 @@ function buildProductOptions(
       name: String(
         item.name || page.product || page.title || "Landing Product",
       ),
-      // price: toNumber(item.price, toNumber(page.price, 1899)),
-      // originalPrice: toNumber(
-      //   item.originalPrice,
-      //   toNumber(page.originalPrice, 2500),
-      // ),
-
-      price: toNumber(item.price, toNumber(page.price, 0)),
-
+      price: toNumber(item.price, toNumber(page.price, 1899)),
       originalPrice: toNumber(
         item.originalPrice,
-        toNumber(page.originalPrice, 0),
+        toNumber(page.originalPrice, 2500),
       ),
-
       image: toImageUrl(String(item.image || page.bannerImageUrl || image)),
       freeShipping: isFreeShipping(item.productId),
     }))

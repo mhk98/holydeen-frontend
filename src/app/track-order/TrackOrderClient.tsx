@@ -2,7 +2,7 @@
 
 import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useEffect, useState } from "react";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import { apiFetch } from "@/lib/api";
 import { ApiResponse } from "@/types/api";
@@ -13,8 +13,8 @@ import {
   type OrderStatusOption,
 } from "@/services/orderStatusService";
 
-const PRIMARY = "#1C2B4B";
-const SECONDARY = "#C39A2B";
+const PRIMARY = "#0B1B4F";
+const SECONDARY = "#C59B27";
 
 interface TrackedOrderItem {
   name: string;

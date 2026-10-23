@@ -18,7 +18,7 @@ export default function MarqueeBanner({ text }: Props) {
   return (
     <div
       className="hidden sm:flex items-center"
-      style={{ background: "#1C2B4B", height: 50 }}
+      style={{ background: "#071233", height: 50 }}
     >
       <div style={{ width: "90%", margin: "0 auto" }} className="flex items-center justify-between gap-4 overflow-hidden">
         {/* Scrolling marquee text */}
@@ -36,7 +36,7 @@ export default function MarqueeBanner({ text }: Props) {
             <Link
               key={label}
               href={href}
-              className="text-white font-medium flex items-center justify-center rounded transition-colors hover:bg-[#256429]"
+              className="text-white font-medium flex items-center justify-center rounded transition-colors hover:bg-[#C59B27] hover:border-[#C59B27]"
               style={{
                 fontSize: 12,
                 border: "2px solid hsla(0,0%,100%,0.5)",

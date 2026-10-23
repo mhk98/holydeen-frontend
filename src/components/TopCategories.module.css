@@ -42,9 +42,9 @@
   transition: color 200ms ease;
 }
 .card:hover .image { transform: scale(1.035); }
-.card:hover .label { color: #96701a; }
+.card:hover .label { color: #C59B27; }
 .card:focus-visible {
-  outline: 2px solid #c39a2b;
+  outline: 2px solid #0B1B4F;
   outline-offset: -2px;
   border-radius: 5px;
 }

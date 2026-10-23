@@ -1,5 +1,5 @@
 ﻿import type { CategoryMenuItem } from "@/services/menuService";
-import Image from "@/components/AppImage";
+import Image from "next/image";
 import Link from "next/link";
 import HorizontalCarousel from "./HorizontalCarousel";
 import styles from "./TopCategories.module.css";

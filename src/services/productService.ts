@@ -136,8 +136,8 @@ export async function fetchProductReviews(
   });
 
   try {
-    // Called from the browser; the backend sends Cache-Control: max-age=60.
     const res = await fetch(`${BASE}/review/public?${qs.toString()}`, {
+      cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     } as RequestInit);
     if (!res.ok) return [];
