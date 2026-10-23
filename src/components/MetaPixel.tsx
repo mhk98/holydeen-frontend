@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { BASE } from "@/lib/api";
-import { markPixelsReady, trackPageView } from "@/lib/pixel";
+import { markPixelsReady, trackPageView, getOrInitFbc, getOrInitFbp } from "@/lib/pixel";
 
 interface TrackingConfig {
   metaPixels?: { pixelsId: string }[];
@@ -19,17 +19,36 @@ function appendScript(id: string, src: string) {
   document.head.appendChild(script);
 }
 
+function getStoredCustomerMatching() {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const raw = localStorage.getItem("customer_info");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.phone || parsed.name)) {
+        const phone = String(parsed.phone || "").replace(/\D/g, "");
+        const normPhone = phone.startsWith("88") ? phone : phone ? `88${phone}` : undefined;
+        const nameParts = String(parsed.name || "").trim().split(/\s+/).filter(Boolean);
+        return {
+          ph: normPhone,
+          fn: parsed.firstName || nameParts[0] || undefined,
+          ln: parsed.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : undefined),
+          country: "bd",
+          external_id: parsed.Id ? String(parsed.Id) : undefined,
+        };
+      }
+    }
+  } catch {}
+  return undefined;
+}
+
 function initMeta(pixelIds: string[]) {
   if (!pixelIds.length) return;
   if (typeof window.fbq !== "function") {
-    // Same as Meta's official stub: once fbevents.js loads it sets callMethod, and
-    // every later call (AddToCart, Purchase, ...) must go through it, not the queue.
     const fbq = function (...args: unknown[]) {
       if (fbq.callMethod) fbq.callMethod(...args);
       else fbq.queue?.push(args);
     } as Window["fbq"] & { disablePushState?: boolean };
-    // PageView is tracked manually on route change (with an eventID for dedup);
-    // stop the pixel from sending its own extra PageView on history changes.
     fbq.disablePushState = true;
     window.fbq = fbq;
     window.fbq.queue = [];
@@ -38,7 +57,14 @@ function initMeta(pixelIds: string[]) {
     window._fbq = window.fbq;
     appendScript("meta-pixel-sdk", "https://connect.facebook.net/en_US/fbevents.js");
   }
-  pixelIds.forEach((id) => window.fbq("init", id));
+  const matchingData = getStoredCustomerMatching();
+  pixelIds.forEach((id) => {
+    if (matchingData) {
+      window.fbq("init", id, matchingData);
+    } else {
+      window.fbq("init", id);
+    }
+  });
 }
 
 function initTiktok(pixelCodes: string[]) {
@@ -56,7 +82,21 @@ function initTiktok(pixelCodes: string[]) {
       _o?: Record<string, unknown>;
     };
     window.ttq = ttq as typeof window.ttq;
-    ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie"];
+    ttq.methods = [
+      "page",
+      "track",
+      "identify",
+      "instances",
+      "debug",
+      "on",
+      "off",
+      "once",
+      "ready",
+      "alias",
+      "group",
+      "enableCookie",
+      "disableCookie",
+    ];
     ttq.setAndDefer = (target, method) => {
       target[method] = (...args: unknown[]) => ttq.push([method, ...args]);
     };
@@ -77,7 +117,7 @@ function initTiktok(pixelCodes: string[]) {
       ttq._o[pixelCode] = {};
       appendScript(
         `tiktok-pixel-sdk-${pixelCode}`,
-        `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(pixelCode)}&lib=ttq`,
+        `https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${encodeURIComponent(pixelCode)}&lib=ttq`
       );
     };
   }
@@ -91,11 +131,16 @@ function initGoogleAds(configs: NonNullable<TrackingConfig["googleAds"]>) {
   const first = configs.find((item) => item.conversionId);
   if (!first) return;
   window.__googleAdsConfigs = configs;
-  appendScript("google-gtag-sdk", `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(first.conversionId)}`);
+  appendScript(
+    "google-gtag-sdk",
+    `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(first.conversionId)}`
+  );
   window.dataLayer = window.dataLayer || [];
-  window.gtag = window.gtag || function (...args: unknown[]) {
-    window.dataLayer.push(args);
-  };
+  window.gtag =
+    window.gtag ||
+    function (...args: unknown[]) {
+      window.dataLayer.push(args);
+    };
   window.gtag("js", new Date());
   configs.forEach((item) => window.gtag?.("config", item.conversionId, { send_page_view: false }));
 }
@@ -104,6 +149,10 @@ export default function MetaPixel() {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Ensure fbc and fbp are captured and persisted immediately
+    getOrInitFbc();
+    getOrInitFbp();
+
     fetch(`${BASE}/tracking/config`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
       .then((json) => {
@@ -118,6 +167,7 @@ export default function MetaPixel() {
 
   // Fires on first load and on every client-side route change; browser side waits for init
   useEffect(() => {
+    getOrInitFbc();
     trackPageView();
   }, [pathname]);
 

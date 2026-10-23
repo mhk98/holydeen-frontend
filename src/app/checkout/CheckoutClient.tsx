@@ -59,6 +59,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
+  const [email, setEmail] = useState("");
   const [payment, setPayment] = useState<"bkash" | "nagad" | "rocket" | "cod">(
     "cod",
   );
@@ -139,6 +140,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
       value: grandTotal,
       currency: "BDT",
       num_items: items.reduce((sum, item) => sum + item.qty, 0),
+      contents: items.map((i) => ({ id: i.id, quantity: i.qty, item_price: i.price, name: i.name })),
     });
   }, [grandTotal, items]);
 
@@ -199,6 +201,12 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                   value: grandTotal,
                   currency: "BDT",
                   num_items: items.reduce((s, i) => s + i.qty, 0),
+        contents: items.map((i) => ({
+          id: i.id,
+          quantity: i.qty,
+          item_price: i.price,
+          name: i.name,
+        })),
                 },
                 { name, phone: normalizedPhone },
               );
@@ -302,8 +310,24 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
         value: grandTotal,
         currency: "BDT",
         num_items: items.reduce((s, i) => s + i.qty, 0),
+        contents: items.map((i) => ({
+          id: i.id,
+          quantity: i.qty,
+          item_price: i.price,
+          name: i.name,
+        })),
       };
-      const orderPixelUser = { name, phone: normalizedPhone };
+      const orderPixelUser = {
+        name: name.trim(),
+        phone: normalizedPhone,
+        email: email.trim() || undefined,
+        address: address.trim(),
+        district,
+        city: district,
+        state: district,
+        country: "bd",
+        externalId: deviceId || normalizedPhone,
+      };
       trackPixelEvent(
         "AddPaymentInfo",
         { ...orderPixelData, content_name: "Checkout Payment Info" },
@@ -488,6 +512,43 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="০ দিয়ে শুরু করে ১১ সংখ্যার মোবাইল নম্বর দিন"
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+
+                {/* Optional Email */}
+                <div>
+                  <label
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "#333",
+                      display: "block",
+                      marginBottom: 8,
+                    }}
+                  >
+                    ইমেইল <span style={{ color: "#888", fontSize: 12, fontWeight: 400 }}>(ঐচ্ছিক)</span>
+                  </label>
+                  <div style={fieldWrap}>
+                    <span style={iconBox}>
+                      <svg
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="#888"
+                        strokeWidth="1.8"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                    </span>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="আপনার ইমেইল (যদি থাকে)"
                       style={inputStyle}
                     />
                   </div>

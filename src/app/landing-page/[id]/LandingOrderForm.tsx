@@ -130,6 +130,12 @@ export default function LandingOrderForm({
       currency: "BDT",
       num_items:
         items.reduce((sum, item) => sum + item.qty, 0) || items.length || 1,
+      contents: items.map((item) => ({
+        id: item.productId || item.id,
+        quantity: item.qty || 1,
+        item_price: item.price || 0,
+        name: item.name,
+      })),
     };
   }, [options, selected, subtotal, title]);
 
@@ -324,7 +330,16 @@ export default function LandingOrderForm({
     checkout.submitting.current = true;
     setSaving(true);
     trackBeginCheckoutOnce();
-    const pixelUser = { name: customer.name.trim(), phone: normalizedPhone };
+    const pixelUser: PixelUserData = {
+      name: customer.name.trim(),
+      phone: normalizedPhone,
+      address: customer.address.trim(),
+      district: shipping,
+      city: shipping === "inside" ? "Dhaka" : "",
+      state: shipping === "inside" ? "Dhaka" : "",
+      country: "bd",
+      externalId: deviceId || normalizedPhone,
+    };
     trackLandingEvent("AddPaymentInfo", total, undefined, pixelUser);
     try {
       const order = await createOrder(buildPayload("pending", normalizedPhone));
