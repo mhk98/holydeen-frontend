@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import SafeImage from "@/components/SafeImage";
 import Link from "next/link";
 import { Product } from "@/data/products";
@@ -32,21 +33,49 @@ export default function ProductCard({ product }: { product: Product }) {
     ? { customerId: customer.Id, name: customer.name, phone: customer.phone }
     : undefined;
 
-  const handleAddToCart = () => {
-    // Products with several variants need a choice first.
-    if (product.hasVariants) {
-      setShowModal(true);
-      return;
+  const router = useRouter();
+
+  const handleAddToCart = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-    addToCart(product, 1, product.variants?.[0]);
+    if (product.inStock === false) return;
+
+    // Pick first available in-stock variant, or first variant, or null
+    const defaultVariant =
+      product.variants?.find((v) => v.inStock !== false) ||
+      product.variants?.[0] ||
+      null;
+
+    addToCart(product, 1, defaultVariant);
     setAdded(true);
-    setTimeout(() => setAdded(false), 1200);
-    trackPixelEvent("AddToCart", pixelProductData, pixelUserData);
+    setTimeout(() => setAdded(false), 1500);
+
+    const price = defaultVariant ? defaultVariant.newPrice : product.discountedPrice;
+    trackPixelEvent(
+      "AddToCart",
+      {
+        ...pixelProductData,
+        value: price,
+      },
+      pixelUserData
+    );
   };
 
-  const handleOrderNow = () => {
+  const handleOrderNow = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (product.inStock === false) return;
-    setShowModal(true);
+
+    if (product.hasVariants) {
+      setShowModal(true);
+    } else {
+      addToCart(product, 1, null);
+      router.push("/checkout");
+    }
   };
 
   return (
