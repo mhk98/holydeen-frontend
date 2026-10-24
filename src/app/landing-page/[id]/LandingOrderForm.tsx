@@ -634,7 +634,8 @@ function LandingInput({
 }) {
   return (
     <label className="mb-4 block text-sm font-bold text-neutral-700">
-      {label}
+      {/* Labels are editable in admin; always show the required marker in red. */}
+      {label.replace(/\s*\*\s*$/, "")} <span className="text-red-600">*</span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
