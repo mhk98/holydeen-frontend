@@ -36,12 +36,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        // DigitalOcean Spaces (origin and CDN), where the backend stores uploads.
+        // DigitalOcean Spaces (origin and CDN), where older uploads are stored.
         protocol: "https",
         hostname: "**.digitaloceanspaces.com",
       },
       {
-        // Older uploads that were stored on Cloudinary.
+        // Cloudinary, where the backend stores uploads.
         protocol: "https",
         hostname: "res.cloudinary.com",
       },
