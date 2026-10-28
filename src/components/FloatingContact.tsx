@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 import { trackPixelEvent } from "@/lib/pixel";
+import { normalizeSocialUrl } from "@/lib/socialUrl";
 
 const CONTACT_DEFS = [
   {
@@ -18,7 +19,7 @@ const CONTACT_DEFS = [
   {
     key: "whatsappUrl" as const,
     label: "WhatsApp",
-    href: (value: string) => value,
+    href: (value: string) => normalizeSocialUrl(value, true),
     color: "#25d366",
     icon: (
       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
@@ -29,7 +30,7 @@ const CONTACT_DEFS = [
   {
     key: "messengerUrl" as const,
     label: "Messenger",
-    href: (value: string) => value,
+    href: (value: string) => normalizeSocialUrl(value),
     color: "#0099ff",
     icon: (
       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
@@ -40,7 +41,7 @@ const CONTACT_DEFS = [
   {
     key: "telegramUrl" as const,
     label: "Telegram",
-    href: (value: string) => value,
+    href: (value: string) => normalizeSocialUrl(value),
     color: "#229ED9",
     icon: (
       <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">

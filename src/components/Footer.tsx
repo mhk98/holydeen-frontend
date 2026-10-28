@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchPublicPages, type WebsitePage } from "@/services/pageService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
+import { normalizeSocialUrl } from "@/lib/socialUrl";
 
 const SOCIAL_DEFS = [
   {
@@ -188,12 +189,12 @@ export default function Footer({ settings, pages: pagesProp }: Props) {
         SOCIAL_DEFS.find((social) => social.key.toLowerCase().startsWith(platform)) ||
         SOCIAL_DEFS.find((social) => social.name.toLowerCase().includes(platform)) ||
         SOCIAL_DEFS[0];
-      return { ...def, id: `${platform || def.name}-${index}`, name: item.label || def.name, url: item.url || "#" };
+      return { ...def, id: `${platform || def.name}-${index}`, name: item.label || def.name, url: normalizeSocialUrl(item.url, def.key === "whatsappUrl") };
     })
     : SOCIAL_DEFS
       .filter((social) => DEFAULT_FOOTER_SOCIAL_KEYS.has(social.key))
-      .map((social) => ({ ...social, id: social.key, url: s[social.key] || null }))
-      .filter((social) => social.url);
+      .filter((social) => s[social.key])
+      .map((social) => ({ ...social, id: social.key, url: normalizeSocialUrl(s[social.key], social.key === "whatsappUrl") }));
   const configuredUsefulLinks = [
     ...(footerConfig.quickLinks || []),
     ...(footerConfig.importantLinks || []),

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import FloatingContact from "@/components/FloatingContact";
 import MarqueeBanner from "@/components/MarqueeBanner";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
+import { normalizeSocialUrl, waUrlFromPhone } from "@/lib/socialUrl";
 
 type ContactItem = {
   key: string;
@@ -18,17 +19,6 @@ type ContactItem = {
 };
 
 const clean = (value?: string | null) => String(value || "").trim();
-
-const waUrlFromPhone = (value: string) => {
-  const digits = value.replace(/\D/g, "");
-  if (!digits) return "";
-  const phone = digits.startsWith("880")
-    ? digits
-    : digits.startsWith("0")
-      ? `88${digits}`
-      : digits;
-  return `https://wa.me/${phone}`;
-};
 
 function ContactIcon({
   icon,
@@ -184,7 +174,8 @@ export default function ContactPage({ header, footer, initialSettings }: Props) 
       settings?.whatsappNumber || settings?.phoneNumber || settings?.phone,
     );
     const whatsappUrl =
-      waUrlFromPhone(whatsappNumber) || clean(settings?.whatsappUrl);
+      waUrlFromPhone(whatsappNumber) || (clean(settings?.whatsappUrl) &&
+        normalizeSocialUrl(settings?.whatsappUrl, true));
 
     return [
       phone && {
