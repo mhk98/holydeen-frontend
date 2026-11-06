@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import MarqueeBanner from "@/components/MarqueeBanner";
@@ -6,6 +7,7 @@ import HeroBanner from "@/components/HeroBanner";
 import PopupBanner from "@/components/PopupBanner";
 import TopCategories from "@/components/TopCategories";
 import ProductSection from "@/components/ProductSection";
+import CategoryBanner from "@/components/CategoryBanner";
 import BrandsSection from "@/components/BrandsSection";
 import { SiteFooter } from "@/components/SiteChrome";
 import FloatingContact from "@/components/FloatingContact";
@@ -14,7 +16,13 @@ import { fetchStorefrontProducts } from "@/services/productService";
 import { fetchSiteSettings, type SiteSetting } from "@/services/settingService";
 import { fetchBanners } from "@/services/bannerService";
 import { fetchBrands } from "@/services/brandService";
-import { fetchCategoryMenus, fetchNavItems, type CategoryMenuItem } from "@/services/menuService";
+import {
+  fetchCategoryDetails,
+  fetchCategoryMenus,
+  fetchNavItems,
+  type CategoryDetails,
+  type CategoryMenuItem,
+} from "@/services/menuService";
 import type { NavItem, Product } from "@/data/products";
 import type { BannerItem } from "@/services/bannerService";
 import type { BrandItem } from "@/services/brandService";
@@ -30,10 +38,28 @@ function groupByCategory(products: Product[]): { title: string; products: Produc
   return [...map.entries()].map(([title, products]) => ({ title: title.toUpperCase(), products }));
 }
 
+type HomeSearchParams = Promise<{ menu?: string; sub?: string; child?: string; landingPageId?: string }>;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: HomeSearchParams;
+}): Promise<Metadata> {
+  const { menu } = await searchParams;
+  if (!menu) return {};
+  const category = await fetchCategoryDetails(menu);
+  if (!category) return {};
+  // Anything left out falls back to the site-wide values from the root layout.
+  return {
+    title: category.metaTitle || category.label,
+    ...(category.metaDescription ? { description: category.metaDescription } : {}),
+  };
+}
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ menu?: string; sub?: string; child?: string; landingPageId?: string }>;
+  searchParams: HomeSearchParams;
 }) {
   const { menu, sub, child, landingPageId } = await searchParams;
   if (landingPageId) {
@@ -47,7 +73,7 @@ export default async function Home({
   let categoryMenus: CategoryMenuItem[] = [];
   let navItems: NavItem[] = [];
 
-  const [productsResult, settingsResult, bannersResult, brandsResult, categoryMenusResult, navItemsResult] = await Promise.all([
+  const [productsResult, settingsResult, bannersResult, brandsResult, categoryMenusResult, navItemsResult, categoryDetails] = await Promise.all([
     fetchStorefrontProducts({ limit: 200, page: 1 }).catch(() => ({ products: [] as Product[] })),
     fetchSiteSettings().catch(() => ({} as Partial<SiteSetting>)),
     fetchBanners().catch(() => ({ slides: [] as BannerItem[], sideBanners: [] as BannerItem[], popupBanners: [] as BannerItem[] })),
@@ -55,6 +81,10 @@ export default async function Home({
     fetchCategoryMenus().catch(() => [] as CategoryMenuItem[]),
     // Shares the per-render menu request with fetchCategoryMenus above.
     fetchNavItems().catch(() => [] as NavItem[]),
+    // The banner belongs to the category page, not its sub/child filters.
+    menu && !sub && !child
+      ? fetchCategoryDetails(menu).catch(() => null as CategoryDetails | null)
+      : null,
   ]);
   allProducts   = productsResult.products;
   settings      = settingsResult;
@@ -104,6 +134,8 @@ export default async function Home({
             </Link>
           </div>
         )}
+
+        {categoryDetails && <CategoryBanner category={categoryDetails} />}
 
         {sections.length > 0 ? (
           sections.map((s) => (

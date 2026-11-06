@@ -73,6 +73,8 @@ export interface ApiOrderItem {
   size?: string;
   color?: string;
   freeShipping?: boolean;
+  isAddon?: boolean;
+  addonCategoryId?: number;
 }
 
 export interface CreateOrderPayload {

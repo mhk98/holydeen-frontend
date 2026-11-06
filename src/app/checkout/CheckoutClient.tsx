@@ -2,6 +2,8 @@
 import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
+import { useCheckoutAddons } from "@/lib/useCheckoutAddons";
+import CheckoutAddonRows from "@/components/CheckoutAddonRows";
 import SafeImage from "@/components/SafeImage";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
@@ -54,6 +56,8 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
   const checkout = useCheckoutSession();
   const router = useRouter();
   const { items, removeFromCart, updateQty, clearCart, totalPrice } = useCart();
+  const addons = useCheckoutAddons(items);
+  const [showAddonErrors, setShowAddonErrors] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -88,7 +92,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
   );
   const deliveryCharge = allItemsFreeShipping ? 0 : regularDeliveryCharge;
   const discount = appliedCoupon?.discount || 0;
-  const grandTotal = Math.max(0, totalPrice + deliveryCharge - discount);
+  const grandTotal = Math.max(0, totalPrice + addons.total + deliveryCharge - discount);
   const paymentMethods = [
     {
       id: "cod" as const,
@@ -166,7 +170,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
           customerAddress: address.trim(),
           customerDistrict: district || undefined,
           paymentMethod: payment,
-          items: items.map((i) => ({
+          items: [...items.map((i) => ({
             id: i.id,
             name: i.name,
             image: i.image,
@@ -177,8 +181,8 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
             size: i.size,
             color: i.color,
             freeShipping: i.freeShipping,
-          })),
-          subtotal: totalPrice,
+          })), ...addons.orderItems],
+          subtotal: totalPrice + addons.total,
           deliveryCharge,
           discount,
           couponCode: appliedCoupon?.code || null,
@@ -229,6 +233,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
     grandTotal,
     incompleteOrderId,
     items,
+    addons.orderItems,
     name,
     payment,
     phone,
@@ -272,6 +277,11 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
       setErrorMsg("কোনো পণ্য নেই।");
       return;
     }
+    if (addons.missingVariant) {
+      setShowAddonErrors(true);
+      setErrorMsg("অফারের পণ্যের size বাছাই করুন, অথবা পণ্যটি সরিয়ে দিন।");
+      return;
+    }
     checkout.submitting.current = true;
     setLoading(true);
     setErrorMsg("");
@@ -285,7 +295,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
         customerAddress: address,
         customerDistrict: district,
         paymentMethod: payment,
-        items: items.map((i) => ({
+        items: [...items.map((i) => ({
           id: i.id,
           name: i.name,
           image: i.image,
@@ -296,21 +306,22 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
           size: i.size,
           color: i.color,
           freeShipping: i.freeShipping,
-        })),
-        subtotal: totalPrice,
+        })), ...addons.orderItems],
+        subtotal: totalPrice + addons.total,
         deliveryCharge,
         discount,
         couponCode: appliedCoupon?.code || null,
         total: grandTotal,
         tracking: getPixelClickData(),
       });
+      const purchasedItems = [...items, ...addons.orderItems];
       const orderPixelData = {
-        content_ids: items.map((i) => i.id),
+        content_ids: purchasedItems.map((i) => i.id),
         content_type: "product",
         value: grandTotal,
         currency: "BDT",
-        num_items: items.reduce((s, i) => s + i.qty, 0),
-        contents: items.map((i) => ({
+        num_items: purchasedItems.reduce((s, i) => s + i.qty, 0),
+        contents: purchasedItems.map((i) => ({
           id: i.id,
           quantity: i.qty,
           item_price: i.price,
@@ -365,6 +376,10 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
         setErrorMsg(
           "আপনার IP address থেকে অর্ডার গ্রহণ সাময়িকভাবে বন্ধ আছে। সহায়তার জন্য আমাদের সাথে যোগাযোগ করুন।",
         );
+      } else if (message.includes("অফার")) {
+        // The offer changed (e.g. a size sold out): show what is available now.
+        addons.refresh();
+        setErrorMsg(message);
       } else {
         setErrorMsg("অর্ডার দেওয়া যায়নি। আবার চেষ্টা করুন।");
       }
@@ -1118,6 +1133,14 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                       </div>
                     ))
                   )}
+                  <CheckoutAddonRows
+                    slots={addons.slots}
+                    removed={addons.removed}
+                    showErrors={showAddonErrors}
+                    onSelect={addons.selectVariant}
+                    onRemove={addons.removeSlot}
+                    onRestore={addons.restore}
+                  />
                 </div>
               </div>
               {/* end overflow-x-auto */}
@@ -1132,7 +1155,7 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                 }}
               >
                 {[
-                  { label: "মোট", value: `৳${fmt(totalPrice)}` },
+                  { label: "মোট", value: `৳${fmt(totalPrice + addons.total)}` },
                   {
                     label: "ডেলিভারি চার্জ",
                     value: allItemsFreeShipping

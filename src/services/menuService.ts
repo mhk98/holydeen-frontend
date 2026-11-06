@@ -10,6 +10,18 @@ interface ApiMenuItem {
   isActive: boolean;
   imageFile?: string | null;
   image?: string | null;
+  bannerImage?: string | null;
+  bannerTitle?: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+}
+
+export interface CategoryDetails {
+  label: string;
+  bannerImageUrl: string | null;
+  bannerTitle: string | null;
+  metaTitle: string | null;
+  metaDescription: string | null;
 }
 
 export interface CategoryMenuItem {
@@ -92,6 +104,22 @@ export async function fetchNavItems(): Promise<NavItem[]> {
 export async function fetchCategoryMenus(): Promise<CategoryMenuItem[]> {
   const items = await fetchPublicMenus();
   return items
+    // "Front View" in admin controls this section only; the menu lists every category.
+    .filter((m) => m.isActive !== false)
     .map((m) => ({ Id: m.Id, label: m.label, imageUrl: toImageUrl(m.imageFile ?? m.image) }))
     .filter((m) => m.imageUrl);
+}
+
+// Looks the category up by the name used in the ?menu= URL.
+export async function fetchCategoryDetails(label: string): Promise<CategoryDetails | null> {
+  const items = await fetchPublicMenus();
+  const item = items.find((m) => m.label.toLowerCase() === label.toLowerCase());
+  if (!item) return null;
+  return {
+    label: item.label,
+    bannerImageUrl: toImageUrl(item.bannerImage),
+    bannerTitle: item.bannerTitle ?? null,
+    metaTitle: item.metaTitle ?? null,
+    metaDescription: item.metaDescription ?? null,
+  };
 }
