@@ -80,6 +80,8 @@ function buildProductOptions(
     .map((item, index) => ({
       id: String(item.productId || item.id || index),
       productId: item.productId || item.id || page.productId || page.Id,
+      // Same real product the server links for stock, free delivery and add-on offers.
+      linkedProductId: Number(item.productId || page.productId) || null,
       name: String(
         item.name || page.product || page.title || "Landing Product",
       ),
@@ -99,6 +101,7 @@ function buildProductOptions(
     {
       id: String(page.productId || page.Id),
       productId: page.productId || page.Id,
+      linkedProductId: Number(page.productId) || null,
       name: page.product || page.title || "Product",
       price: toNumber(page.price, 0),
       originalPrice: toNumber(page.originalPrice, 0),

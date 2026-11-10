@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
+import { useCheckoutAddons } from "@/lib/useCheckoutAddons";
+import CheckoutAddonRows from "@/components/CheckoutAddonRows";
 import { createOrder, saveIncompleteOrder } from "@/services/orderService";
 import { getPixelClickData, trackPixelEvent, type PixelUserData } from "@/lib/pixel";
 import type { CreateOrderPayload } from "@/types/api";
@@ -10,6 +12,8 @@ import type { CreateOrderPayload } from "@/types/api";
 export interface LandingOrderOption {
   id: string;
   productId: string | number;
+  /** The real product behind this option; decides which add-on offers apply. */
+  linkedProductId?: number | null;
   name: string;
   price: number;
   originalPrice: number;
@@ -110,9 +114,19 @@ export default function LandingOrderForm({
     : shipping === "inside"
       ? deliveryInside
       : deliveryOutside;
-  const subtotal = useMemo(
-    () => selected.reduce((sum, item) => sum + item.price * item.qty, 0),
+  // Add-on offers (e.g. a ৳99 hoodie) earned by the selected options' real products.
+  const addonQualifyingItems = useMemo(
+    () =>
+      selected
+        .filter((item) => item.linkedProductId)
+        .map((item) => ({ id: Number(item.linkedProductId), qty: item.qty })),
     [selected],
+  );
+  const addons = useCheckoutAddons(addonQualifyingItems);
+  const [showAddonErrors, setShowAddonErrors] = useState(false);
+  const subtotal = useMemo(
+    () => selected.reduce((sum, item) => sum + item.price * item.qty, 0) + addons.total,
+    [selected, addons.total],
   );
   const total = subtotal + deliveryCharge;
   const pixelData = useMemo(() => {
@@ -269,6 +283,7 @@ export default function LandingOrderForm({
     customer.note,
     shipping,
     selected,
+    addons.orderItems,
     success,
   ]);
 
@@ -288,13 +303,16 @@ export default function LandingOrderForm({
       customerAddress: customerData.address.trim(),
       customerDistrict: shipping,
       paymentMethod: "cod",
-      items: selected.map((item) => ({
-        id: Number(item.productId || landingId) || landingId,
-        name: item.name,
-        image: item.image,
-        price: item.price,
-        qty: item.qty,
-      })),
+      items: [
+        ...selected.map((item) => ({
+          id: Number(item.productId || landingId) || landingId,
+          name: item.name,
+          image: item.image,
+          price: item.price,
+          qty: item.qty,
+        })),
+        ...addons.orderItems,
+      ],
       subtotal,
       deliveryCharge,
       discount: 0,
@@ -324,6 +342,11 @@ export default function LandingOrderForm({
     }
     if (!selected.length) {
       setError(labels.productRequiredError);
+      return;
+    }
+    if (addons.missingVariant) {
+      setShowAddonErrors(true);
+      setError("অফারের পণ্যের size বাছাই করুন, অথবা পণ্যটি সরিয়ে দিন।");
       return;
     }
 
@@ -363,7 +386,10 @@ export default function LandingOrderForm({
       checkout.complete();
       router.push(`/order-success?invoiceId=${encodeURIComponent(invoiceId)}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Order create failed.");
+      const message = err instanceof Error ? err.message : "Order create failed.";
+      // The offer changed (e.g. a size sold out): show what is available now.
+      if (message.includes("অফার")) addons.refresh();
+      setError(message);
     } finally {
       checkout.submitting.current = false;
       setSaving(false);
@@ -606,6 +632,16 @@ export default function LandingOrderForm({
                   </strong>
                 </div>
               ))}
+              <div className="overflow-x-auto">
+                <CheckoutAddonRows
+                  slots={addons.slots}
+                  removed={addons.removed}
+                  showErrors={showAddonErrors}
+                  onSelect={addons.selectVariant}
+                  onRemove={addons.removeSlot}
+                  onRestore={addons.restore}
+                />
+              </div>
               <SummaryRow label={labels.subtotalLabel} value={subtotal} />
               <SummaryRow
                 label="Delivery Charge"

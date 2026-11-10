@@ -1,6 +1,5 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { CartItem } from "@/context/CartContext";
 import { fetchAddonOffers, type AddonOffer } from "@/services/orderService";
 import type { ApiOrderItem } from "@/types/api";
 
@@ -17,12 +16,18 @@ export interface AddonRemoved {
 
 type SlotChoice = { variantId?: number; removed?: boolean };
 
+/** A product in the order (cart item, or a landing option's linked product). */
+export interface AddonQualifyingItem {
+  id: number;
+  qty: number;
+}
+
 /**
  * Checkout add-ons: each cart item from a category with an add-on offer earns one add-on
  * slot. Slots live here instead of the cart, so they follow the cart automatically and
  * disappear when the qualifying product is removed.
  */
-export function useCheckoutAddons(items: CartItem[]) {
+export function useCheckoutAddons(items: AddonQualifyingItem[]) {
   const [offers, setOffers] = useState<AddonOffer[]>([]);
   const [choices, setChoices] = useState<Record<string, SlotChoice>>({});
   const [reloadCount, setReloadCount] = useState(0);
