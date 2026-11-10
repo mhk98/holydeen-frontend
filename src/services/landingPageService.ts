@@ -15,6 +15,8 @@ export interface LandingPageData {
   productId?: number | null;
   product?: string | null;
   title: string;
+  /** Public path segment (holydeen.com/<slug>), made from the campaign title. */
+  slug?: string | null;
   subTitle?: string | null;
   bannerImageUrl?: string | null;
   prizeImageUrl?: string | null;
@@ -36,6 +38,11 @@ export interface LandingPageData {
   freeShippingProductIds?: number[];
 }
 
+/** Public URL path of a landing page: /<slug>, or /<id> for a page without one yet. */
+export const landingPath = (page: Pick<LandingPageData, "Id" | "slug">) =>
+  `/${encodeURIComponent(page.slug || String(page.Id))}`;
+
+/** By slug, or by numeric id for old /landing-page/<id> links. */
 export async function fetchLandingPage(id: string | number): Promise<LandingPageData | null> {
   try {
     const res = await fetch(`${BASE}/landing-pages/public/${encodeURIComponent(String(id))}`, {
