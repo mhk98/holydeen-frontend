@@ -4,7 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
 import { useCheckoutAddons } from "@/lib/useCheckoutAddons";
-import CheckoutAddonRows from "@/components/CheckoutAddonRows";
+import AddonOfferCard, {
+  addonPriceText,
+  ADDON_OFFER_ANCHOR,
+  DEFAULT_ADDON_TEXTS,
+} from "@/components/AddonOfferCard";
 import { createOrder, saveIncompleteOrder } from "@/services/orderService";
 import { getPixelClickData, trackPixelEvent, type PixelUserData } from "@/lib/pixel";
 import type { CreateOrderPayload } from "@/types/api";
@@ -38,6 +42,7 @@ interface LandingOrderFormProps {
 }
 
 const formatMoney = (value: number) => value.toLocaleString("en-US");
+const ADDON_SIZE_ERROR = "অফারের পণ্যের size বাছাই করুন, অথবা টিক তুলে অফারটি বাদ দিন।";
 const textValue = (
   source: Record<string, unknown> | undefined,
   key: string,
@@ -115,15 +120,52 @@ export default function LandingOrderForm({
       ? deliveryInside
       : deliveryOutside;
   // Add-on offers (e.g. a ৳99 hoodie) earned by the selected options' real products.
+  // Admin can switch the offer off for this page (Order Form → Add-on অফার); the server
+  // refuses add-ons for such a page too.
+  const addonEnabled = orderForm?.addonEnabled !== false;
   const addonQualifyingItems = useMemo(
     () =>
-      selected
-        .filter((item) => item.linkedProductId)
-        .map((item) => ({ id: Number(item.linkedProductId), qty: item.qty })),
-    [selected],
+      addonEnabled
+        ? selected
+            .filter((item) => item.linkedProductId)
+            .map((item) => ({ id: Number(item.linkedProductId), qty: item.qty }))
+        : [],
+    [selected, addonEnabled],
   );
   const addons = useCheckoutAddons(addonQualifyingItems);
   const [showAddonErrors, setShowAddonErrors] = useState(false);
+  // "প্রতিটি <product>-এর সাথে ১টি": only when exactly one selected product earns the offer.
+  const addonQualifyingName = useMemo(() => {
+    const qualifying = new Set(
+      [...addons.slots, ...addons.removed].flatMap(({ offer }) => offer.qualifyingProductIds),
+    );
+    const names = [
+      ...new Set(
+        selected
+          .filter((item) => qualifying.has(Number(item.linkedProductId)))
+          .map((item) => item.name.trim()),
+      ),
+    ];
+    return names.length === 1 ? names[0] : undefined;
+  }, [addons.slots, addons.removed, selected]);
+  // Summary lines: one per chosen size (a size not picked yet gets its own line).
+  const addonSummary = useMemo(() => {
+    const lines = new Map<string, { name: string; variant?: string; qty: number; price: number }>();
+    for (const { offer, variantId } of addons.slots) {
+      const key = `${offer.categoryId}-${variantId ?? "none"}`;
+      const variant = offer.product.variants.find((v) => v.id === variantId);
+      const line = lines.get(key);
+      if (line) line.qty += 1;
+      else
+        lines.set(key, {
+          name: offer.product.name,
+          variant: variant ? Object.values(variant.options).join(", ") || variant.label : undefined,
+          qty: 1,
+          price: offer.price,
+        });
+    }
+    return [...lines.entries()];
+  }, [addons.slots]);
   const subtotal = useMemo(
     () => selected.reduce((sum, item) => sum + item.price * item.qty, 0) + addons.total,
     [selected, addons.total],
@@ -226,6 +268,11 @@ export default function LandingOrderForm({
       "আপনার অর্ডারটি নেওয়া হয়েছে।",
     ),
   };
+
+  // Once the customer picks a size or drops the offer, the "pick a size" error is stale.
+  function clearAddonError() {
+    setError((current) => (current === ADDON_SIZE_ERROR ? "" : current));
+  }
 
   function toggleOption(option: LandingOrderOption) {
     trackAddToCartOnce();
@@ -346,7 +393,10 @@ export default function LandingOrderForm({
     }
     if (addons.missingVariant) {
       setShowAddonErrors(true);
-      setError("অফারের পণ্যের size বাছাই করুন, অথবা পণ্যটি সরিয়ে দিন।");
+      setError(ADDON_SIZE_ERROR);
+      document
+        .getElementById(ADDON_OFFER_ANCHOR)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -495,6 +545,26 @@ export default function LandingOrderForm({
               );
             })}
           </div>
+          <AddonOfferCard
+            texts={{
+              title: textValue(orderForm, "addonTitle", DEFAULT_ADDON_TEXTS.title),
+              checkboxText: textValue(orderForm, "addonCheckboxText", DEFAULT_ADDON_TEXTS.checkboxText),
+              noteText: textValue(orderForm, "addonNoteText", DEFAULT_ADDON_TEXTS.noteText),
+            }}
+            slots={addons.slots}
+            removed={addons.removed}
+            showErrors={showAddonErrors}
+            qualifyingName={addonQualifyingName}
+            onSelect={(key, variantId) => {
+              addons.selectVariant(key, variantId);
+              clearAddonError();
+            }}
+            onRemove={(key) => {
+              addons.removeSlot(key);
+              clearAddonError();
+            }}
+            onRestore={addons.restore}
+          />
         </div>
 
         <div className="mt-8 grid gap-8 md:grid-cols-[1.15fr_0.85fr]">
@@ -632,16 +702,27 @@ export default function LandingOrderForm({
                   </strong>
                 </div>
               ))}
-              <div className="overflow-x-auto">
-                <CheckoutAddonRows
-                  slots={addons.slots}
-                  removed={addons.removed}
-                  showErrors={showAddonErrors}
-                  onSelect={addons.selectVariant}
-                  onRemove={addons.removeSlot}
-                  onRestore={addons.restore}
-                />
-              </div>
+              {addonSummary.map(([key, line]) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-[1fr_92px_88px] items-center gap-2 bg-[#FAF4E6] p-3"
+                >
+                  <p className="min-w-0 text-sm font-bold">
+                    🎁 {line.name}{" "}
+                    {line.variant ? (
+                      <span className="text-slate-600">({line.variant})</span>
+                    ) : (
+                      <span className="text-xs text-red-600">(size বাছাই করুন)</span>
+                    )}
+                  </p>
+                  <span className="mx-auto rounded border border-slate-600 px-3 py-1 text-sm font-black">
+                    {line.qty} x
+                  </span>
+                  <strong className="text-right">
+                    {addonPriceText(line.price * line.qty)}
+                  </strong>
+                </div>
+              ))}
               <SummaryRow label={labels.subtotalLabel} value={subtotal} />
               <SummaryRow
                 label="Delivery Charge"

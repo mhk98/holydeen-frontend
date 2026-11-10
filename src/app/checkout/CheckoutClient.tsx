@@ -3,7 +3,7 @@ import type { SiteChromeSlots } from "@/components/SiteChrome";
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useCheckoutSession } from "@/lib/useCheckoutSession";
 import { useCheckoutAddons } from "@/lib/useCheckoutAddons";
-import CheckoutAddonRows from "@/components/CheckoutAddonRows";
+import AddonOfferCard, { ADDON_OFFER_ANCHOR } from "@/components/AddonOfferCard";
 import SafeImage from "@/components/SafeImage";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
@@ -18,6 +18,7 @@ import { getPixelClickData, trackPixelEvent } from "@/lib/pixel";
 import { validateCoupon, type AppliedCoupon } from "@/services/couponService";
 
 const fmt = (v: number) => v.toLocaleString("en-US");
+const ADDON_SIZE_ERROR = "অফারের পণ্যের size বাছাই করুন, অথবা টিক তুলে অফারটি বাদ দিন।";
 const DEVICE_ID_KEY = "kafela_device_id";
 
 const normalizePhoneNumber = (value: string) =>
@@ -58,6 +59,14 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
   const { items, removeFromCart, updateQty, clearCart, totalPrice } = useCart();
   const addons = useCheckoutAddons(items);
   const [showAddonErrors, setShowAddonErrors] = useState(false);
+  // "প্রতিটি <product>-এর সাথে ১টি": only when exactly one cart product earns the offer.
+  const addonQualifyingName = (() => {
+    const qualifying = new Set(
+      [...addons.slots, ...addons.removed].flatMap(({ offer }) => offer.qualifyingProductIds),
+    );
+    const names = [...new Set(items.filter((item) => qualifying.has(item.id)).map((item) => item.name.trim()))];
+    return names.length === 1 ? names[0] : undefined;
+  })();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -279,7 +288,10 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
     }
     if (addons.missingVariant) {
       setShowAddonErrors(true);
-      setErrorMsg("অফারের পণ্যের size বাছাই করুন, অথবা পণ্যটি সরিয়ে দিন।");
+      setErrorMsg(ADDON_SIZE_ERROR);
+      document
+        .getElementById(ADDON_OFFER_ANCHOR)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     checkout.submitting.current = true;
@@ -1133,17 +1145,29 @@ function CheckoutContent({ header, footer }: SiteChromeSlots) {
                       </div>
                     ))
                   )}
-                  <CheckoutAddonRows
-                    slots={addons.slots}
-                    removed={addons.removed}
-                    showErrors={showAddonErrors}
-                    onSelect={addons.selectVariant}
-                    onRemove={addons.removeSlot}
-                    onRestore={addons.restore}
-                  />
                 </div>
               </div>
               {/* end overflow-x-auto */}
+
+              {/* Add-on offer (e.g. a free hoodie), same card as on landing pages */}
+              <div style={{ padding: "0 18px" }}>
+                <AddonOfferCard
+                  columns={1}
+                  slots={addons.slots}
+                  removed={addons.removed}
+                  showErrors={showAddonErrors}
+                  qualifyingName={addonQualifyingName}
+                  onSelect={(key, variantId) => {
+                    addons.selectVariant(key, variantId);
+                    setErrorMsg((current) => (current === ADDON_SIZE_ERROR ? "" : current));
+                  }}
+                  onRemove={(key) => {
+                    addons.removeSlot(key);
+                    setErrorMsg((current) => (current === ADDON_SIZE_ERROR ? "" : current));
+                  }}
+                  onRestore={addons.restore}
+                />
+              </div>
 
               {/* Price rows */}
               <div

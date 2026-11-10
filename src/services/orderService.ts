@@ -6,6 +6,8 @@ export interface AddonOfferVariant {
   options: Record<string, string>;
   label: string;
   stock: number;
+  /** Normal selling price, shown struck through next to the offer price. */
+  regularPrice?: number;
 }
 
 export interface AddonOffer {
