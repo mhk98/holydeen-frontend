@@ -15,10 +15,11 @@
   box-sizing: border-box;
 }
 
-/* Unlayered, so it beats Tailwind utilities. Landing pages opt out so their
-   utility-based layout (mx-auto, px-*, py-*) works; Tailwind preflight still
-   resets them. */
-:where(:not(.landing-root, .landing-root *)) {
+/* Unlayered, so it beats Tailwind utilities. Landing pages, and Tailwind-styled
+   components placed inside other pages (.tw-root, e.g. the add-on offer card), opt
+   out so their utility-based layout (mx-auto, px-*, py-*) works; Tailwind preflight
+   still resets them. */
+:where(:not(.landing-root, .landing-root *, .tw-root, .tw-root *)) {
   margin: 0;
   padding: 0;
 }

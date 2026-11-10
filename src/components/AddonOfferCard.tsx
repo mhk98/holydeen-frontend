@@ -69,8 +69,12 @@ export default function AddonOfferCard({
   if (!offers.size) return null;
 
   return (
-    // Same two-column grid as the product options above, so the card lines up with them.
-    <div id={ADDON_OFFER_ANCHOR} className={`mt-4 grid gap-4 scroll-mt-24 ${columns === 2 ? "md:grid-cols-2" : ""}`}>
+    // tw-root keeps the site-wide margin/padding reset (globals.css) off the card's
+    // utilities. columns=2 lines the card up with the landing product options.
+    <div
+      id={ADDON_OFFER_ANCHOR}
+      className={`tw-root mt-4 grid gap-4 scroll-mt-24 ${columns === 2 ? "md:grid-cols-2" : ""}`}
+    >
       {[...offers.values()].map((offer) => {
         const offerSlots = slots.filter((slot) => slot.offer.categoryId === offer.categoryId);
         const removedKeys = removed.find((entry) => entry.offer.categoryId === offer.categoryId)?.keys || [];
